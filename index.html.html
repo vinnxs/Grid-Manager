@@ -570,6 +570,9 @@
 
     let matchIntervalToken = null;
     let myChart = null;
+    let isMatchSimulating = false;
+    let isIntervalPaused = false;
+    let aiEngine = { opponent: null };
 
     function formatMoney(value) {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
@@ -596,7 +599,6 @@
             switchScreen('dashboard');
             initChart();
 
-            // CASO O USUÁRIO TENHA SALVOU NO MEIO DA PARTIDA (FIFA PAUSE RESTORE)
             if (gameState.matchSimulatingActive) {
                 isMatchSimulating = true;
                 isIntervalPaused = gameState.matchIntervalPaused;
@@ -617,15 +619,12 @@
         }
     }
 
-    // LISTENER PARA DETECTAR QUANDO O JOGADOR MUDA DE ABA (AUTO-PAUSE ESTILO FIFA)
     document.addEventListener("visibilitychange", () => {
         if (document.hidden && isMatchSimulating && !isIntervalPaused) {
-            // Congela o timer imediatamente
             isMatchSimulating = false;
             gameState.matchSimulatingActive = true;
             gameState.matchIntervalPaused = false;
             localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
-            console.log("FIFA Auto-Pause: Jogo congelado e salvo em segundo plano.");
         }
     });
 
@@ -639,7 +638,6 @@
     }
 
     function switchScreen(screenId) {
-        // Se mudar de aba ou tela durante a simulação ativa, pausa automaticamente o relógio para manipulação tática
         if (isMatchSimulating && screenId !== 'dashboard' && screenId !== 'taticas') {
             isMatchSimulating = false;
             gameState.matchSimulatingActive = true;
@@ -651,12 +649,10 @@
         const targetScreen = document.getElementById(`screen-${screenId}`);
         if(targetScreen) targetScreen.classList.add('active');
         
-        const navBtns = Array.from(document.querySelectorAll('.btn-nav'));
-        const matchedBtn = navBtns.find(b => b.id === `btn-tab-${screenId}` || b.textContent.toLowerCase().includes(screenId.substring(0, 4)));
+        const matchedBtn = document.getElementById(`btn-tab-${screenId}`);
         if (matchedBtn) matchedBtn.classList.add('active');
 
         if (screenId === 'dashboard') {
-            // Se voltou para o painel principal e estava em simulação congelada, retoma
             if (gameState.matchSimulatingActive && !isIntervalPaused && !isMatchSimulating) {
                 isMatchSimulating = true;
                 runMatchLoop();
@@ -950,7 +946,6 @@
 
             gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.16); });
 
-            // RENDERIZAÇÃO EM TEMPO REAL NO CAMPO DA DASHBOARD DURANTE A PARTIDA
             renderVisualField('dash-field-players');
 
             if (gameState.currentMinute === 45) {
@@ -965,7 +960,8 @@
 
             if (gameState.currentMinute >= 90) {
                 clearInterval(matchIntervalToken);
-                finishMatchDay(gameState.myGoals, gameState.oppGoals, gameState.schedule[gameState.week - 1], document.getElementById('match-live-log'), document.getElementById('btn-play'));
+                let currentRoundMatches = gameState.schedule[gameState.week - 1];
+                finishMatchDay(gameState.myGoals, gameState.oppGoals, currentRoundMatches, document.getElementById('match-live-log'), document.getElementById('btn-play'));
                 return;
             }
 
@@ -976,7 +972,7 @@
                 clearInterval(matchIntervalToken); 
                 renderMatchEventVisual(nextEvent); 
             }
-        }, 120); // Ajuste fino na cadência para dar tempo de assistir e gerenciar o FIFA pause
+        }, 120);
     }
 
     function resumeMatchSimulation() { isIntervalPaused = false; gameState.matchIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
@@ -1008,7 +1004,6 @@
         renderVisualField('dash-field-players');
     }
 
-    // FIX DA RENDERIZAÇÃO DOS JOGADORES E STAMINAS NO CAMPO DE JOGO DA DASHBOARD
     function renderVisualField(containerId) {
         const container = document.getElementById(containerId); 
         if(!container) return;
@@ -1027,6 +1022,23 @@
         });
     }
 
+    function generateLeagueSchedule(teamList) {
+        let list = [...teamList];
+        let numTeams = list.length;
+        let rounds = numTeams - 1;
+        let turnMatches = [];
+        for (let r = 0; r < rounds; r++) {
+            let roundFixtures = [];
+            for (let i = 0; i < numTeams / 2; i++) {
+                roundFixtures.push({ home: list[i].id, away: list[numTeams - 1 - i].id });
+            }
+            turnMatches.push(roundFixtures);
+            list.splice(1, 0, list.pop());
+        }
+        let returnMatches = turnMatches.map(round => round.map(m => ({ home: m.away, away: m.home })));
+        return [...turnMatches, ...returnMatches];
+    }
+
     function changeFormation() { gameState.formation = document.getElementById('select-formation').value; if(document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas(); prepareDashboard(); }
     function toggleSaleStatus(id) { let p = gameState.players.find(pl => pl.id === id); p.onSale = !p.onSale; renderElencoColumns(); }
 
@@ -1036,19 +1048,6 @@
                 gameState.proposals.push({ id: Date.now(), playerId: p.id, playerName: p.name, offer: Math.floor(p.val * 0.95), club: "Rival" });
             }
         });
-    }
-
-    function renderProposals() {
-        const container = document.getElementById('proposals-list');
-        if (!container) return;
-        if (gameState.proposals.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:0.9rem;'>Nenhuma proposta.</p>"; return; }
-        container.innerHTML = `<div class="proposal-card"><div><strong>${gameState.proposals[0].playerName}</strong></div><button onclick="acceptProposal(${gameState.proposals[0].id})">Aceitar Proposta de ${formatMoney(gameState.proposals[0].offer)}</button></div>`;
-    }
-
-    function acceptProposal(id) {
-        let idx = gameState.proposals.findIndex(p => p.id === id); let prop = gameState.proposals[idx];
-        gameState.players = gameState.players.filter(pl => pl.id !== prop.playerId); gameState.money += prop.offer;
-        gameState.proposals.splice(idx, 1); updateTopBar(); renderElencoColumns();
     }
 
     function generateMarket() {
@@ -1077,6 +1076,19 @@
         if (gameState.money < p.val) return alert("Caixa insuficiente!");
         gameState.money -= p.val; gameState.players.push({...p, status:"Reserva", stamina:100});
         gameState.market.splice(idx, 1); updateTopBar(); renderMarket();
+    }
+
+    function renderProposals() {
+        const container = document.getElementById('proposals-list');
+        if (!container) return;
+        if (gameState.proposals.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:0.9rem;'>Nenhuma proposta.</p>"; return; }
+        container.innerHTML = `<div class="proposal-card"><div><strong>${gameState.proposals[0].playerName}</strong></div><button onclick="acceptProposal(${gameState.proposals[0].id})">Aceitar Proposta de ${formatMoney(gameState.proposals[0].offer)}</button></div>`;
+    }
+
+    function acceptProposal(id) {
+        let idx = gameState.proposals.findIndex(p => p.id === id); let prop = gameState.proposals[idx];
+        gameState.players = gameState.players.filter(pl => pl.id !== prop.playerId); gameState.money += prop.offer;
+        gameState.proposals.splice(idx, 1); updateTopBar(); renderElencoColumns();
     }
 
     function renderFinancas() {
