@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Manager - Brasfoot Pro Drag Edition</title>
+    <style>
+        :root {
+            --bg-main: #0b0e14;
+            --bg-card: #121721;
+            --bg-card-hover: #1a202c;
+            --primary: #00e676;
+            --primary-glow: rgba(0, 230, 118, 0.2);
+            --text: #f8f9fa;
+            --text-muted: #707e94;
+            --danger: #ff5252;
+            --warning: #ffd740;
+            --info: #40c4ff;
+            --border: #222b3c;
+            --field-green: #1b5e20;
+            --field-lines: rgba(255, 255, 255, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text);
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        h1 { 
+            font-size: 1.8rem; 
+            font-weight: 900; 
+            letter-spacing: -1px;
+        }
+        h1 span { color: var(--primary); }
+
+        .top-info {
+            display: flex;
+            gap: 20px;
+            background: var(--bg-card);
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: #0b0e14;
+            border: none;
+            padding: 11px 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        button:disabled { background-color: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
+        button.btn-nav { background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
+        button.btn-nav:hover { color: var(--text); background: var(--bg-card-hover); }
+        button.btn-nav.active { background-color: var(--primary); border-color: var(--primary); color: #0b0e14; box-shadow: 0 4px 12px var(--primary-glow); }
+        button.danger { background-color: rgba(255, 82, 82, 0.1); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.2); }
+        button.danger:hover { background-color: var(--danger); color: white; }
+        button.secondary { background-color: #222b3c; color: var(--text); border: 1px solid var(--border); }
+        button.secondary:hover { background-color: var(--bg-card-hover); }
+
+        .card {
+            background-color: var(--bg-card);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .flex-dashboard {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        .tactic-layout-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        th { background-color: rgba(255,255,255,0.01); color: var(--text-muted); font-weight: 600; }
+
+        .log-box {
+            background: #07090e;
+            padding: 16px;
+            height: 250px;
+            overflow-y: auto;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #00ff88;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+        }
+
+        .football-field {
+            background-color: var(--field-green);
+            background-image: 
+                radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.15) 41%),
+                linear-gradient(to bottom, rgba(255,255,255,0.05) 50%, transparent 50%),
+                linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 80px, 40px 100%;
+            border: 3px solid var(--field-lines);
+            border-radius: 12px;
+            height: 480px;
+            position: relative;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.6);
+            overflow: hidden;
+        }
+
+        .field-center-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--field-lines);
+        }
+
+        .field-center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 2px solid var(--field-lines);
+            border-radius: 50%;
+        }
+
+        .field-penalty-area-top {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 70px;
+            border: 2px solid var(--field-lines);
+            border-top: none;
+        }
+
+        .field-penalty-area-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 70px;
+            border: 2px solid var(--field-lines);
+            border-bottom: none;
+        }
+
+        .field-player-card {
+            position: absolute;
+            background: rgba(18, 23, 33, 0.92);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            width: 115px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+            transform: translate(-50%, -50%);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .field-player-card.drag-over {
+            border-color: var(--primary);
+            background: rgba(0, 230, 118, 0.25);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .elenco-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .elenco-list-container {
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 400px;
+        }
+
+        .draggable-player-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .draggable-player-card:hover {
+            border-color: var(--text-muted);
+            background: var(--bg-card-hover);
+        }
+
+        .draggable-player-card:active {
+            cursor: grabbing;
+            opacity: 0.5;
+        }
+
+        .draggable-player-card.drag-over-player {
+            border-color: var(--primary);
+            background: rgba(0, 230, 118, 0.1);
+        }
+
+        .stamina-container {
+            width: 60px;
+            background: #222b3c;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .stamina-bar {
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .badge { 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            background: rgba(255,255,255,0.05); 
+            text-transform: uppercase;
+        }
+        .badge.pos-gol { color: #ffeb3b; background: rgba(255, 235, 59, 0.1); }
+        .badge.pos-zag { color: #2196f3; background: rgba(33, 150, 243, 0.1); }
+        .badge.pos-vol { color: #00bcd4; background: rgba(0, 188, 212, 0.1); }
+        .badge.pos-mei { color: #e91e63; background: rgba(233, 30, 99, 0.1); }
+        .badge.pos-ata { color: #ff5722; background: rgba(255, 87, 34, 0.1); }
+
+        .badge.titular { color: var(--primary); background: rgba(0, 230, 118, 0.1); }
+        .badge.reserva { color: var(--warning); background: rgba(255, 215, 64, 0.1); }
+
+        .finance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .finance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .proposal-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Grid <span>Manager</span></h1>
+        <div id="top-bar" class="top-info" style="display: none;">
+            <span>🏟️ <span id="user-club-name" style="font-weight: 700;"></span></span>
+            <span>💰 <span id="user-money" style="color: var(--primary); font-weight: 700;">R$ 12.000.000</span></span>
+            <span>📅 Rodada: <span id="current-week" style="font-weight: 700;">1</span>/38</span>
+        </div>
+    </header>
+
+    <!-- SELEÇÃO DE TIME -->
+    <div id="screen-select" class="screen active">
+        <div class="card" style="text-align: center; padding: 40px 20px;">
+            <h2 style="font-size: 1.8rem; margin-bottom: 8px;">Escolha sua Equipe (Série A)</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Gerencie o elenco arrastando titulares e reservas de forma intuitiva.</p>
+            
+            <!-- SISTEMA DE COMPATIBILIDADE DE SAVE -->
+            <div id="load-save-container" style="margin-bottom: 30px; display:none;">
+                <button onclick="loadGame()" style="background-color: var(--info); color:#0b0e14; padding:12px 24px;">📂 Carregar Jogo Salvo</button>
+            </div>
+
+            <div id="club-select-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;"></div>
+        </div>
+    </div>
+
+    <!-- PAINEL PRINCIPAL -->
+    <div id="main-interface" style="display: none;">
+        <div class="grid-menu">
+            <button class="btn-nav active" onclick="switchScreen('dashboard')">Dashboard</button>
+            <button class="btn-nav" id="btn-tab-taticas" onclick="switchScreen('taticas')">Táticas (Campo)</button>
+            <button class="btn-nav" id="btn-tab-elenco" onclick="switchScreen('elenco')">Elenco (Lista)</button>
+            <button class="btn-nav" onclick="switchScreen('mercado')">Mercado</button>
+            <button class="btn-nav" onclick="switchScreen('financas')">Banco & Finanças</button>
+            <button class="btn-nav" onclick="switchScreen('classificacoes')">Tabela</button>
+            <button onclick="saveGame()" style="background-color: var(--info); color:#0b0e14; font-weight: bold;">💾 Salvar</button>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="screen-dashboard" class="screen">
+            <div class="flex-dashboard">
+                <div>
+                    <div class="card">
+                        <h3 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 8px;">Próximo Confronto</h3>
+                        <p id="next-match-info" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;"></p>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button id="btn-play" style="flex: 1; font-size: 1.1rem; padding: 14px;" onclick="simulateMatchDay()">▶ Iniciar Simulação</button>
+                            <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="flex: 0.6;">⚡ Auto-Escalar</button>
+                        </div>
+                        
+                        <div id="mid-match-actions" style="display: none; margin-top: 15px; gap: 10px;">
+                            <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%; margin-bottom: 8px;">Substituição Rápida (Campo)</button>
+                            <button id="btn-resume-match" onclick="resumeMatchSimulation()" style="background-color: var(--primary); color: black; width: 100%; display: none;">Continuar Segundo Tempo ➔</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Lances em Tempo Real</h3>
+                        <div id="match-live-log" class="log-box" style="margin-top: 16px;">Aguardando o início da rodada...</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card" style="padding: 16px;">
+                        <h3 style="font-size: 1rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            Visualização do Time
+                            <span id="dash-formation-badge" class="badge">4-4-2</span>
+                        </h3>
+                        <div class="football-field">
+                            <div class="field-center-line"></div>
+                            <div class="field-center-circle"></div>
+                            <div class="field-penalty-area-top"></div>
+                            <div class="field-penalty-area-bottom"></div>
+                            <div id="dash-field-players"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TÁTICAS -->
+        <div id="screen-taticas" class="screen">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <h3>Esquema Tático Interativo</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Arraste um reserva para cima do titular no campo para substituir.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="secondary" onclick="executeAutoSelection()">⚡ Auto-Escalar</button>
+                        <select id="select-formation" onchange="changeFormation()" style="background:#222b3c; color:white; padding:10px; border:1px solid var(--border); border-radius:8px; font-weight: 600;">
+                            <option value="4-4-2">4-4-2</option>
+                            <option value="4-3-3">4-3-3</option>
+                            <option value="3-5-2">3-5-2</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="tactic-layout-grid">
+                    <div>
+                        <div class="football-field" id="tactic-football-field">
+                            <div class="field-center-line"></div>
+                            <div class="field-center-circle"></div>
+                            <div class="field-penalty-area-top"></div>
+                            <div class="field-penalty-area-bottom"></div>
+                            <div id="tactic-field-players"></div>
+                        </div>
+                        <button id="btn-save-taticas" onclick="saveTaticasAndReturn()" style="width: 100%; margin-top: 15px; background-color: var(--primary); color: #0b0e14; display: none;">Salvar Alterações e Voltar para o Jogo</button>
+                    </div>
+                    
+                    <div>
+                        <h4 style="margin-bottom: 10px; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Suplentes / Reservas</h4>
+                        <div id="tactic-bench-list" style="max-height: 480px; overflow-y: auto; padding-right: 5px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ELENCO -->
+        <div id="screen-elenco" class="screen">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div>
+                    <h2>Gerenciamento do Elenco</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Arraste um jogador por cima de outro para inverter os papéis.</p>
+                </div>
+                <button onclick="executeAutoSelection()" style="background-color: var(--primary); color: #0b0e14;">⚡ Escalação Automática (Melhores)</button>
+            </div>
+
+            <div class="elenco-columns">
+                <div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; justify-content: space-between;">
+                            Titulares Escalados <span id="titular-counter" style="font-size: 0.9rem; color: var(--text-muted);">0 / 11</span>
+                        </h3>
+                        <div id="elenco-titulares-list" class="elenco-list-container"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <h3 style="color: var(--warning); margin-bottom: 12px;">Reservas & Suplentes</h3>
+                        <div id="elenco-reservas-list" class="elenco-list-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 24px;">
+                <h3>Propostas de Compra Recebidas</h3>
+                <div id="proposals-list" class="proposals-container" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- MERCADO -->
+        <div id="screen-mercado" class="screen">
+            <div class="card">
+                <h3>Jogadores Disponíveis no Mercado</h3>
+                <table id="table-mercado">
+                    <thead>
+                        <tr><th>Nome</th><th>Idade</th><th>Posição</th><th>OVR</th><th>Preço</th><th>Salário</th><th>Ação</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FINANÇAS -->
+        <div id="screen-financas" class="screen">
+            <div class="finance-grid">
+                <div class="card">
+                    <h3>Balanço do Clube</h3>
+                    <div style="margin-top: 15px;">
+                        <div class="finance-item"><span>Dinheiro em Caixa</span><span id="fin-box" style="font-weight:bold; color:var(--primary);">R$ 0</span></div>
+                        <div class="finance-item"><span>Bilheteria Acumulada</span><span id="fin-tickets" style="color:var(--primary);">R$ 0</span></div>
+                        <div class="finance-item"><span>Patrocínios</span><span id="fin-sponsor" style="color:var(--primary);">R$ 0</span></div>
+                        <div class="finance-item"><span>Despesa com Salários</span><span id="fin-wages" style="color:var(--danger);">- R$ 0</span></div>
+                        <div class="finance-item"><span>Gastos com Compras</span><span id="fin-spent" style="color:var(--danger);">- R$ 0</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Sistema de Empréstimos</h3>
+                    <div style="margin-bottom: 16px;">
+                        <div class="finance-item"><span>Dívida Ativa</span><span id="loan-debt-value" style="color: var(--danger); font-weight: bold;">R$ 0</span></div>
+                        <div class="finance-item"><span>Limite de Crédito</span><span id="loan-limit-value" style="color: var(--info);">R$ 0</span></div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="takeLoan()" style="background-color: var(--warning); color: black; flex: 1;">Pegar R$ 1.500.000</button>
+                        <button onclick="payLoan()" class="danger" style="flex: 1;">Pagar R$ 1.500.000</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLASSIFICAÇÃO -->
+        <div id="screen-classificacoes" class="screen">
+            <div class="card">
+                <h3>Campeonato Brasileiro - Série A</h3>
+                <table id="table-classificacao">
+                    <thead>
+                        <tr><th>Pos</th><th>Clube</th><th>Pts</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let gameState = {
+        userClub: "",
+        money: 12000000,
+        debt: 0,
+        loanLimit: 6000000,
+        week: 1,
+        formation: "4-4-2",
+        finances: { tickets: 0, sponsor: 0, wages: 0, spent: 0 },
+        clubs: [
+            { id: "cfc", name: "Coritiba", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 },
+            { id: "fla", name: "Flamengo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 85 },
+            { id: "pal", name: "Palmeiras", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 84 },
+            { id: "bot", name: "Botafogo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 82 },
+            { id: "sao", name: "São Paulo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 80 },
+            { id: "gremio", name: "Grêmio", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 78 },
+            { id: "cru", name: "Cruzeiro", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 },
+            { id: "vasco", name: "Vasco", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 }
+        ],
+        players: [],
+        market: [],
+        proposals: [],
+        schedule: []
+    };
+
+    const positionOrder = { "GOL": 1, "ZAG": 2, "VOL": 3, "MEI": 4, "ATA": 5 };
+
+    const positionsLayout = {
+        "4-4-2": [
+            {top: "88%", left: "50%", label: "GOL"},
+            {top: "70%", left: "18%", label: "LAD"}, {top: "73%", left: "38%", label: "ZAG"}, {top: "73%", left: "62%", label: "ZAG"}, {top: "70%", left: "82%", label: "LAE"},
+            {top: "48%", left: "18%", label: "VOL"}, {top: "52%", left: "38%", label: "MC"}, {top: "52%", left: "62%", label: "MC"}, {top: "48%", left: "82%", label: "MEI"},
+            {top: "24%", left: "33%", label: "ATA"}, {top: "24%", left: "67%", label: "ATA"}
+        ],
+        "4-3-3": [
+            {top: "88%", left: "50%", label: "GOL"},
+            {top: "70%", left: "18%", label: "LAD"}, {top: "73%", left: "38%", label: "ZAG"}, {top: "73%", left: "62%", label: "ZAG"}, {top: "70%", left: "82%", label: "LAE"},
+            {top: "52%", left: "28%", label: "VOL"}, {top: "55%", left: "50%", label: "MC"}, {top: "52%", left: "72%", label: "MEI"},
+            {top: "24%", left: "18%", label: "PE"}, {top: "20%", left: "50%", label: "CA"}, {top: "24%", left: "82%", label: "PD"}
+        ],
+        "3-5-2": [
+            {top: "88%", left: "50%", label: "GOL"},
+            {top: "72%", left: "28%", label: "ZAG"}, {top: "75%", left: "50%", label: "ZAG"}, {top: "72%", left: "72%", label: "ZAG"},
+            {top: "50%", left: "15%", label: "ALA"}, {top: "48%", left: "34%", label: "VOL"}, {top: "52%", left: "50%", label: "MC"}, {top: "48%", left: "66%", label: "MEI"}, {top: "50%", left: "85%", label: "ALA"},
+            {top: "24%", left: "33%", label: "ATA"}, {top: "24%", left: "67%", label: "ATA"}
+        ]
+    };
+
+    let isMatchSimulating = false;
+    let isIntervalPaused = false;
+    let matchMinute = 0;
+    let aiEngine = { timeline: [], myGoals: 0, oppGoals: 0, opponent: null };
+
+    function formatMoney(value) {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
+    }
+
+    // SISTEMA DE SALVAMENTO (LOCALSTORAGE)
+    function saveGame() {
+        if (!gameState.userClub) return;
+        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+        alert("Jogo salvo com sucesso em seu navegador! 💾");
+    }
+
+    function loadGame() {
+        let savedData = localStorage.getItem("grid_manager_save");
+        if (savedData) {
+            gameState = JSON.parse(savedData);
+            
+            // Força a regeração do calendário se necessário
+            gameState.schedule = generateLeagueSchedule(gameState.clubs);
+            
+            document.getElementById('user-club-name').innerText = gameState.clubs.find(c => c.id === gameState.userClub).name;
+            document.getElementById('screen-select').style.display = 'none';
+            document.getElementById('main-interface').style.display = 'block';
+            document.getElementById('top-bar').style.display = 'flex';
+            
+            updateTopBar();
+            switchScreen('dashboard');
+            alert("Jogo carregado! Voltando de onde parou... 📂");
+        }
+    }
+
+    function checkExistingSave() {
+        if (localStorage.getItem("grid_manager_save")) {
+            document.getElementById("load-save-container").style.display = "block";
+        }
+    }
+
+    function sortSquad(playersList) {
+        return [...playersList].sort((a, b) => {
+            if (positionOrder[a.pos] !== positionOrder[b.pos]) {
+                return positionOrder[a.pos] - positionOrder[b.pos];
+            }
+            return b.ovr - a.ovr;
+        });
+    }
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
+        
+        const targetScreen = document.getElementById(`screen-${screenId}`);
+        if(targetScreen) targetScreen.classList.add('active');
+        
+        const navBtns = Array.from(document.querySelectorAll('.btn-nav'));
+        const matchedBtn = navBtns.find(b => b.id === `btn-tab-${screenId}` || b.textContent.toLowerCase().includes(screenId.substring(0, 4)));
+        if (matchedBtn) matchedBtn.classList.add('active');
+
+        if (screenId === 'dashboard') prepareDashboard();
+        if (screenId === 'taticas') renderInteractiveTaticas();
+        if (screenId === 'elenco') renderElencoColumns();
+        if (screenId === 'mercado') renderMarket();
+        if (screenId === 'financas') renderFinancas();
+        if (screenId === 'classificacoes') updateTabela();
+    }
+
+    function initGame() {
+        let selectHtml = "";
+        gameState.clubs.forEach(club => {
+            selectHtml += `<div class="card" style="margin-bottom:0; padding:16px; text-align:center;">
+                <h4 style="font-weight:700;">${club.name}</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom:12px;">OVR ${club.power}</p>
+                <button onclick="selectClub('${club.id}')" style="width:100%;">Assumir</button>
+            </div>`;
+        });
+        document.getElementById('club-select-list').innerHTML = selectHtml;
+        generateMarket();
+        gameState.schedule = generateLeagueSchedule(gameState.clubs);
+        checkExistingSave();
+    }
+
+    function selectClub(clubId) {
+        gameState.userClub = clubId;
+        if (clubId === "cfc") {
+            const baseSquad = [
+                { name: "Pedro Morisco", age: 21, pos: "GOL", ovr: 75, wage: 15000, status: "Titular", stamina: 100, val: 3200000, onSale: false },
+                { name: "S. Gómez", age: 29, pos: "VOL", ovr: 76, wage: 25000, status: "Titular", stamina: 100, val: 5100000, onSale: false },
+                { name: "Josué", age: 33, pos: "MEI", ovr: 75, wage: 30000, status: "Titular", stamina: 100, val: 3400000, onSale: false },
+                { name: "Kuscevic", age: 27, pos: "ZAG", ovr: 75, wage: 24000, status: "Titular", stamina: 100, val: 4200000, onSale: false },
+                { name: "M. Antônio", age: 31, pos: "ZAG", ovr: 71, wage: 18000, status: "Titular", stamina: 100, val: 2100000, onSale: false },
+                { name: "Natanael", age: 23, pos: "ZAG", ovr: 72, wage: 15000, status: "Titular", stamina: 100, val: 3100000, onSale: false },
+                { name: "F. Jonatan", age: 26, pos: "ZAG", ovr: 72, wage: 19000, status: "Titular", stamina: 100, val: 2900000, onSale: false },
+                { name: "Thalisson", age: 22, pos: "ZAG", ovr: 69, wage: 10000, status: "Titular", stamina: 100, val: 1800000, onSale: false },
+                { name: "Lucas Ronier", age: 20, pos: "ATA", ovr: 76, wage: 22000, status: "Titular", stamina: 100, val: 6800000, onSale: false },
+                { name: "Breno Lopes", age: 28, pos: "ATA", ovr: 75, wage: 28000, status: "Titular", stamina: 100, val: 4500000, onSale: false },
+                { name: "Pedro Rocha", age: 29, pos: "ATA", ovr: 73, wage: 23000, status: "Titular", stamina: 100, val: 3600000, onSale: false },
+                { name: "G. Leite", age: 30, pos: "GOL", ovr: 66, wage: 8000, status: "Reserva", stamina: 100, val: 750000, onSale: false },
+                { name: "Vini Paulista", age: 24, pos: "VOL", ovr: 71, wage: 12000, status: "Reserva", stamina: 100, val: 2100000, onSale: false },
+                { name: "Yago F.", age: 23, pos: "MEI", ovr: 69, wage: 11000, status: "Reserva", stamina: 100, val: 1400000, onSale: false },
+                { name: "Brandão", age: 19, pos: "ATA", ovr: 65, wage: 6000, status: "Reserva", stamina: 100, val: 950000, onSale: false }
+            ];
+            gameState.players = baseSquad.map((p, index) => ({ id: index + 100, ...p }));
+        }
+
+        document.getElementById('user-club-name').innerText = gameState.clubs.find(c => c.id === clubId).name;
+        document.getElementById('screen-select').style.display = 'none';
+        document.getElementById('main-interface').style.display = 'block';
+        document.getElementById('top-bar').style.display = 'flex';
+        
+        updateTopBar();
+        switchScreen('dashboard');
+    }
+
+    function executeAutoSelection() {
+        let req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 2, ATA: 2 };
+        if (gameState.formation === "4-3-3") req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 1, ATA: 3 };
+        if (gameState.formation === "3-5-2") req = { GOL: 1, ZAG: 3, VOL: 3, MEI: 2, ATA: 2 };
+
+        gameState.players.forEach(p => p.status = "Reserva");
+        let sortedPool = [...gameState.players].sort((a, b) => b.ovr - a.ovr);
+        let selectedCount = 0;
+
+        for (let pos in req) {
+            let needed = req[pos];
+            let candidates = sortedPool.filter(p => p.pos === pos && p.status === "Reserva");
+            for (let i = 0; i < Math.min(needed, candidates.length); i++) {
+                let selectedPlayer = gameState.players.find(p => p.id === candidates[i].id);
+                if (selectedPlayer) {
+                    selectedPlayer.status = "Titular";
+                    selectedCount++;
+                }
+            }
+        }
+
+        if (selectedCount < 11) {
+            let generalCandidates = [...gameState.players].filter(p => p.status === "Reserva").sort((a, b) => b.ovr - a.ovr);
+            for (let i = 0; i < (11 - selectedCount); i++) {
+                if (generalCandidates[i]) {
+                    let selectedPlayer = gameState.players.find(p => p.id === generalCandidates[i].id);
+                    if (selectedPlayer) selectedPlayer.status = "Titular";
+                }
+            }
+        }
+
+        if (document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas();
+        if (document.getElementById('screen-elenco').classList.contains('active')) renderElencoColumns();
+        prepareDashboard();
+    }
+
+    function renderElencoColumns() {
+        const titularesContainer = document.getElementById('elenco-titulares-list');
+        const reservasContainer = document.getElementById('elenco-reservas-list');
+        titularesContainer.innerHTML = ""; reservasContainer.innerHTML = "";
+
+        let titulares = sortSquad(gameState.players.filter(p => p.status === "Titular"));
+        let reservas = sortSquad(gameState.players.filter(p => p.status === "Reserva"));
+
+        document.getElementById('titular-counter').innerText = `${titulares.length} / 11`;
+
+        titulares.forEach(p => titularesContainer.appendChild(createElencoDraggableCard(p)));
+        reservas.forEach(p => reservasContainer.appendChild(createElencoDraggableCard(p)));
+
+        setupContainerDropEvents(titularesContainer, "Titular");
+        setupContainerDropEvents(reservasContainer, "Reserva");
+        renderProposals();
+    }
+
+    function createElencoDraggableCard(p) {
+        let card = document.createElement('div');
+        card.className = "draggable-player-card";
+        card.draggable = true;
+        card.dataset.id = p.id;
+
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span>
+                <div><strong>${p.name}</strong><div style="font-size: 0.75rem; color: var(--text-muted);">${p.age} anos</div></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="text-align: right;"><div style="font-weight: bold; color: var(--primary);">OVR ${p.ovr}</div></div>
+                <div class="stamina-container"><div class="stamina-bar" style="width: ${p.stamina}%;"></div></div>
+                <button onclick="toggleSaleStatus(${p.id})" style="padding: 4px 8px; font-size: 0.75rem;" class="secondary">${p.onSale ? 'Venda On' : 'Vender'}</button>
+            </div>
+        `;
+
+        card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', p.id); card.style.opacity = "0.4"; });
+        card.addEventListener('dragend', () => { card.style.opacity = "1"; document.querySelectorAll('.draggable-player-card').forEach(c => c.classList.remove('drag-over-player')); });
+        card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over-player'); });
+        card.addEventListener('dragleave', () => card.classList.remove('drag-over-player'));
+        card.addEventListener('drop', (e) => { e.preventDefault(); card.classList.remove('drag-over-player'); let draggedId = e.dataTransfer.getData('text/plain'); if (draggedId != p.id) executeListSwap(draggedId, p.id); });
+
+        return card;
+    }
+
+    function setupContainerDropEvents(container, targetStatus) {
+        container.addEventListener('dragover', (e) => e.preventDefault());
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            let draggedId = e.dataTransfer.getData('text/plain');
+            let player = gameState.players.find(p => p.id == draggedId);
+            if (player && player.status !== targetStatus) {
+                if (targetStatus === "Titular" && gameState.players.filter(p => p.status === "Titular").length >= 11) {
+                    alert("Limite de 11 titulares atingido."); return;
+                }
+                player.status = targetStatus;
+                renderElencoColumns(); prepareDashboard();
+            }
+        });
+    }
+
+    function executeListSwap(draggedId, targetId) {
+        let draggedPlayer = gameState.players.find(p => p.id == draggedId);
+        let targetPlayer = gameState.players.find(p => p.id == targetId);
+        if (draggedPlayer && targetPlayer) {
+            let tempStatus = draggedPlayer.status;
+            draggedPlayer.status = targetPlayer.status;
+            targetPlayer.status = tempStatus;
+            renderElencoColumns(); prepareDashboard();
+        }
+    }
+
+    function renderInteractiveTaticas() {
+        const fieldContainer = document.getElementById('tactic-field-players');
+        const benchContainer = document.getElementById('tactic-bench-list');
+        fieldContainer.innerHTML = ""; benchContainer.innerHTML = "";
+
+        let starters = sortSquad(gameState.players.filter(p => p.status === "Titular"));
+        let bench = sortSquad(gameState.players.filter(p => p.status === "Reserva"));
+        let layout = positionsLayout[gameState.formation] || positionsLayout["4-4-2"];
+
+        starters.forEach((p, idx) => {
+            if (idx < 11) {
+                let coord = layout[idx];
+                let card = document.createElement('div');
+                card.className = "field-player-card"; card.style.top = coord.top; card.style.left = coord.left;
+                card.innerHTML = `<div style="font-weight:bold;">${p.name.split(' ')[0]}</div><div style="color:var(--primary); font-size:0.7rem;">OVR ${p.ovr} (${p.pos})</div>`;
+                card.addEventListener('dragover', (e) => e.preventDefault());
+                card.addEventListener('drop', (e) => { let draggedId = e.dataTransfer.getData('text/plain'); executeSubstitution(draggedId, p.id); });
+                fieldContainer.appendChild(card);
+            }
+        });
+
+        bench.forEach(p => {
+            let row = document.createElement('div');
+            row.className = "draggable-player-card"; row.draggable = true;
+            row.innerHTML = `<div><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span> <strong>${p.name}</strong></div><div>OVR ${p.ovr}</div>`;
+            row.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', p.id));
+            benchContainer.appendChild(row);
+        });
+        document.getElementById('btn-save-taticas').style.display = isMatchSimulating ? 'block' : 'none';
+    }
+
+    function executeSubstitution(reservaId, titularId) {
+        let reserva = gameState.players.find(p => p.id == reservaId);
+        let titular = gameState.players.find(p => p.id == titularId);
+        if (reserva && titular) { reserva.status = "Titular"; titular.status = "Reserva"; renderInteractiveTaticas(); prepareDashboard(); }
+    }
+
+    function saveTaticasAndReturn() { switchScreen('dashboard'); if (!isIntervalPaused) { isMatchSimulating = true; runMatchLoop(); } }
+    function openMidMatchSubstitution() { isMatchSimulating = false; switchScreen('taticas'); }
+
+    function simulateMatchDay() {
+        let starters = gameState.players.filter(p => p.status === "Titular");
+        if (starters.length !== 11) { alert("Escale exatamente 11 titulares!"); return; }
+        isMatchSimulating = true; isIntervalPaused = false; matchMinute = 0;
+        document.getElementById('match-live-log').innerHTML = "🏁 Apito inicial! Começa o primeiro tempo...<br>";
+        generateMatchScript(); runMatchLoop();
+    }
+
+    let matchIntervalToken = null;
+    function runMatchLoop() {
+        if (matchIntervalToken) clearInterval(matchIntervalToken);
+        matchIntervalToken = setInterval(() => {
+            if (!isMatchSimulating || isIntervalPaused) { clearInterval(matchIntervalToken); return; }
+            matchMinute++;
+            gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.20); });
+
+            if (matchMinute === 45) {
+                isIntervalPaused = true; clearInterval(matchIntervalToken);
+                document.getElementById('match-live-log').innerHTML += `<br>⏱️ <strong>Intervalo: Você ${aiEngine.myGoals} x ${aiEngine.oppGoals} ${aiEngine.opponent.name}</strong><br>`;
+                document.getElementById('btn-resume-match').style.display = 'block'; return;
+            }
+
+            if (matchMinute >= 90) {
+                clearInterval(matchIntervalToken);
+                finishMatchDay(aiEngine.myGoals, aiEngine.oppGoals, gameState.schedule[gameState.week - 1], document.getElementById('match-live-log'), document.getElementById('btn-play'));
+                return;
+            }
+
+            let nextEvent = aiEngine.timeline.find(e => e.minute === matchMinute && !e.processed);
+            if (nextEvent) { nextEvent.processed = true; isMatchSimulating = false; clearInterval(matchIntervalToken); renderMatchEventVisual(nextEvent); }
+        }, 60);
+    }
+
+    function resumeMatchSimulation() { isIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
+
+    function renderMatchEventVisual(nextEvent) {
+        let logBox = document.getElementById('match-live-log');
+        if (nextEvent.owner === "user") {
+            aiEngine.myGoals += nextEvent.isGoal ? 1 : 0;
+            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>GOOOL! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>❌ Chance perdida!</div>`;
+        } else {
+            aiEngine.oppGoals += nextEvent.isGoal ? 1 : 0;
+            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>Gol deles! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>🧤 Defesa do goleiro!</div>`;
+        }
+        isMatchSimulating = true; runMatchLoop();
+    }
+
+    function prepareDashboard() {
+        if (gameState.week > 38) return;
+        document.getElementById('btn-play').style.display = isMatchSimulating ? 'none' : 'block';
+        document.getElementById('btn-auto-escalar-dash').style.display = isMatchSimulating ? 'none' : 'block';
+        document.getElementById('mid-match-actions').style.display = isMatchSimulating ? 'block' : 'none';
+
+        let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
+        aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
+        document.getElementById('next-match-info').innerText = `Próximo jogo vs ${aiEngine.opponent.name}`;
+        renderVisualField('dash-field-players');
+    }
+
+    function renderVisualField(containerId) {
+        const container = document.getElementById(containerId); container.innerHTML = "";
+        let starters = sortSquad(gameState.players.filter(p => p.status === "Titular"));
+        let layout = positionsLayout[gameState.formation] || positionsLayout["4-4-2"];
+        starters.forEach((p, idx) => {
+            if (idx < 11) {
+                let coord = layout[idx];
+                container.innerHTML += `<div class="field-player-card" style="top: ${coord.top}; left: ${coord.left}; border-style: solid;"><div>${p.name.split(' ')[0]}</div><div style="color:var(--primary); font-size:0.7rem;">${p.pos}</div></div>`;
+            }
+        });
+    }
+
+    function changeFormation() { gameState.formation = document.getElementById('select-formation').value; if(document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas(); prepareDashboard(); }
+    function toggleSaleStatus(id) { let p = gameState.players.find(pl => pl.id === id); p.onSale = !p.onSale; renderElencoColumns(); }
+
+    function simulateProposals() {
+        gameState.players.filter(p => p.onSale).forEach(p => {
+            if(Math.random() < 0.40 && !gameState.proposals.some(prop => prop.playerId === p.id)) {
+                gameState.proposals.push({ id: Date.now(), playerId: p.id, playerName: p.name, offer: Math.floor(p.val * 0.95), club: "Rival" });
+            }
+        });
+    }
+
+    function renderProposals() {
+        const container = document.getElementById('proposals-list');
+        if (gameState.proposals.length === 0) { container.innerHTML = "<p>Nenhuma proposta.</p>"; return; }
+        container.innerHTML = `<button onclick="acceptProposal(${gameState.proposals[0].id})">Aceitar proposta por ${gameState.proposals[0].playerName}</button>`;
+    }
+
+    function acceptProposal(id) {
+        let idx = gameState.proposals.findIndex(p => p.id === id); let prop = gameState.proposals[idx];
+        gameState.players = gameState.players.filter(pl => pl.id !== prop.playerId); gameState.money += prop.offer;
+        gameState.proposals.splice(idx, 1); updateTopBar(); renderElencoColumns();
+    }
+
+    function generateMarket() {
+        gameState.market = [];
+        for(let i=0; i<5; i++) {
+            gameState.market.push({ id: Date.now()+i, name: "Mercado "+i, age: 25, pos: "ATA", ovr: 75, val: 3000000, wage: 12000 });
+        }
+    }
+
+    function renderMarket() {
+        let tbody = "";
+        gameState.market.forEach(p => { tbody += `<tr><td>${p.name}</td><td>${p.age}</td><td>${p.pos}</td><td>${p.ovr}</td><td>${formatMoney(p.val)}</td><td>${formatMoney(p.wage)}</td><td><button onclick="buyPlayer(${p.id})">Comprar</button></td></tr>`; });
+        document.getElementById('table-mercado').querySelector('tbody').innerHTML = tbody;
+    }
+
+    function buyPlayer(id) {
+        let idx = gameState.market.findIndex(p => p.id === id); let p = gameState.market[idx];
+        if (gameState.money < p.val) return;
+        gameState.money -= p.val; gameState.players.push({...p, status:"Reserva", stamina:100});
+        gameState.market.splice(idx, 1); updateTopBar(); renderMarket();
+    }
+
+    function renderFinancas() {
+        document.getElementById('fin-box').innerText = formatMoney(gameState.money);
+        document.getElementById('loan-debt-value').innerText = formatMoney(gameState.debt);
+        document.getElementById('loan-limit-value').innerText = formatMoney(gameState.loanLimit);
+    }
+
+    function takeLoan() { if (gameState.loanLimit <= 0) return; gameState.money += 1500000; gameState.debt += 1500000; gameState.loanLimit -= 1500000; renderFinancas(); updateTopBar(); }
+    function payLoan() { if (gameState.debt <= 0 || gameState.money < 1500000) return; gameState.money -= 1500000; gameState.debt -= 1500000; gameState.loanLimit += 1500000; renderFinancas(); updateTopBar(); }
+
+    function generateMatchScript() {
+        let myPower = getStartingElevenPower(); let oppPower = aiEngine.opponent.power;
+        let userChanceRatio = myPower / (myPower + oppPower);
+        aiEngine.timeline = [{ minute: 20, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.4, processed: false }, { minute: 70, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.4, processed: false }];
+    }
+
+    function finishMatchDay(myGoals, oppGoals, currentRoundMatches, logBox, btnPlay) {
+        // SALVAMENTO AUTOMÁTICO DE SEGURANÇA A CADA RODADA COMPLETA
+        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+        
+        let userClubObj = gameState.clubs.find(c => c.id === gameState.userClub);
+        if(myGoals > oppGoals) { userClubObj.pts += 3; userClubObj.v++; } else if(myGoals === oppGoals) { userClubObj.pts += 1; }
+        gameState.week++; generateMarket(); simulateProposals(); updateTopBar(); prepareDashboard();
+    }
+
+    function updateTabela() {
+        gameState.clubs.sort((a,b) => b.pts - a.pts);
+        let tbody = "";
+        gameState.clubs.forEach((c, idx) => { tbody += `<tr><td>${idx+1}</td><td>${c.name}</td><td>${c.pts}</td><td>${c.v}</td><td>${c.e}</td><td>${c.d}</td><td>${c.sg}</td></tr>`; });
+        document.getElementById('table-classificacao').querySelector('tbody').innerHTML = tbody;
+    }
+
+    initGame();
+</script>
+</body>
+</html>
