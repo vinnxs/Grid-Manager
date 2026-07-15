@@ -1,9 +1,14 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grid Manager - Brasfoot Pro Drag Edition</title>
+    <title>Grid Manager - Ultimate Edition</title>
+    <!-- INJEÇÃO DOS PLUGINS E BIBLIOTECAS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <style>
         :root {
             --bg-main: #0b0e14;
@@ -260,11 +265,6 @@
             background: var(--bg-card-hover);
         }
 
-        .draggable-player-card:active {
-            cursor: grabbing;
-            opacity: 0.5;
-        }
-
         .draggable-player-card.drag-over-player {
             border-color: var(--primary);
             background: rgba(0, 230, 118, 0.1);
@@ -300,7 +300,7 @@
         .badge.titular { color: var(--primary); background: rgba(0, 230, 118, 0.1); }
         .badge.reserva { color: var(--warning); background: rgba(255, 215, 64, 0.1); }
 
-        .finance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .finance-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
         .finance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .proposal-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     </style>
@@ -311,9 +311,9 @@
     <header>
         <h1>Grid <span>Manager</span></h1>
         <div id="top-bar" class="top-info" style="display: none;">
-            <span>🏟️ <span id="user-club-name" style="font-weight: 700;"></span></span>
-            <span>💰 <span id="user-money" style="color: var(--primary); font-weight: 700;">R$ 12.000.000</span></span>
-            <span>📅 Rodada: <span id="current-week" style="font-weight: 700;">1</span>/38</span>
+            <span><i class="fa-solid fa-stadium"></i> <span id="user-club-name" style="font-weight: 700;"></span></span>
+            <span><i class="fa-solid fa-wallet"></i> <span id="user-money" style="color: var(--primary); font-weight: 700;">R$ 12.000.000</span></span>
+            <span><i class="fa-solid fa-calendar-days"></i> Rodada: <span id="current-week" style="font-weight: 700;">1</span>/38</span>
         </div>
     </header>
 
@@ -323,9 +323,8 @@
             <h2 style="font-size: 1.8rem; margin-bottom: 8px;">Escolha sua Equipe (Série A)</h2>
             <p style="color: var(--text-muted); margin-bottom: 20px;">Gerencie o elenco arrastando titulares e reservas de forma intuitiva.</p>
             
-            <!-- SISTEMA DE COMPATIBILIDADE DE SAVE -->
             <div id="load-save-container" style="margin-bottom: 30px; display:none;">
-                <button onclick="loadGame()" style="background-color: var(--info); color:#0b0e14; padding:12px 24px;">📂 Carregar Jogo Salvo</button>
+                <button onclick="loadGame()" style="background-color: var(--info); color:#0b0e14; padding:12px 24px;"><i class="fa-solid fa-folder-open"></i> Carregar Jogo Salvo</button>
             </div>
 
             <div id="club-select-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;"></div>
@@ -335,13 +334,13 @@
     <!-- PAINEL PRINCIPAL -->
     <div id="main-interface" style="display: none;">
         <div class="grid-menu">
-            <button class="btn-nav active" onclick="switchScreen('dashboard')">Dashboard</button>
-            <button class="btn-nav" id="btn-tab-taticas" onclick="switchScreen('taticas')">Táticas (Campo)</button>
-            <button class="btn-nav" id="btn-tab-elenco" onclick="switchScreen('elenco')">Elenco (Lista)</button>
-            <button class="btn-nav" onclick="switchScreen('mercado')">Mercado</button>
-            <button class="btn-nav" onclick="switchScreen('financas')">Banco & Finanças</button>
-            <button class="btn-nav" onclick="switchScreen('classificacoes')">Tabela</button>
-            <button onclick="saveGame()" style="background-color: var(--info); color:#0b0e14; font-weight: bold;">💾 Salvar</button>
+            <button class="btn-nav active" onclick="switchScreen('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+            <button class="btn-nav" id="btn-tab-taticas" onclick="switchScreen('taticas')"><i class="fa-solid fa-shield-halved"></i> Táticas</button>
+            <button class="btn-nav" id="btn-tab-elenco" onclick="switchScreen('elenco')"><i class="fa-solid fa-users"></i> Elenco</button>
+            <button class="btn-nav" onclick="switchScreen('mercado')"><i class="fa-solid fa-cart-shopping"></i> Mercado</button>
+            <button class="btn-nav" onclick="switchScreen('financas')"><i class="fa-solid fa-building-columns"></i> Finanças</button>
+            <button class="btn-nav" onclick="switchScreen('classificacoes')"><i class="fa-solid fa-list-ol"></i> Tabela</button>
+            <button onclick="saveGame()" style="background-color: var(--info); color:#0b0e14; font-weight: bold;"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
         </div>
 
         <!-- DASHBOARD -->
@@ -353,12 +352,12 @@
                         <p id="next-match-info" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;"></p>
                         
                         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <button id="btn-play" style="flex: 1; font-size: 1.1rem; padding: 14px;" onclick="simulateMatchDay()">▶ Iniciar Simulação</button>
-                            <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="flex: 0.6;">⚡ Auto-Escalar</button>
+                            <button id="btn-play" style="flex: 1; font-size: 1.1rem; padding: 14px;" onclick="simulateMatchDay()"><i class="fa-solid fa-play"></i> Iniciar Simulação</button>
+                            <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="flex: 0.6;"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
                         </div>
                         
                         <div id="mid-match-actions" style="display: none; margin-top: 15px; gap: 10px;">
-                            <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%; margin-bottom: 8px;">Substituição Rápida (Campo)</button>
+                            <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%; margin-bottom: 8px;"><i class="fa-solid fa-people-arrows"></i> Substituição Rápida</button>
                             <button id="btn-resume-match" onclick="resumeMatchSimulation()" style="background-color: var(--primary); color: black; width: 100%; display: none;">Continuar Segundo Tempo ➔</button>
                         </div>
                     </div>
@@ -395,7 +394,7 @@
                         <p style="color: var(--text-muted); font-size: 0.85rem;">Arraste um reserva para cima do titular no campo para substituir.</p>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <button class="secondary" onclick="executeAutoSelection()">⚡ Auto-Escalar</button>
+                        <button class="secondary" onclick="executeAutoSelection()"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
                         <select id="select-formation" onchange="changeFormation()" style="background:#222b3c; color:white; padding:10px; border:1px solid var(--border); border-radius:8px; font-weight: 600;">
                             <option value="4-4-2">4-4-2</option>
                             <option value="4-3-3">4-3-3</option>
@@ -431,7 +430,7 @@
                     <h2>Gerenciamento do Elenco</h2>
                     <p style="color: var(--text-muted); font-size: 0.9rem;">Arraste um jogador por cima de outro para inverter os papéis.</p>
                 </div>
-                <button onclick="executeAutoSelection()" style="background-color: var(--primary); color: #0b0e14;">⚡ Escalação Automática (Melhores)</button>
+                <button onclick="executeAutoSelection()" style="background-color: var(--primary); color: #0b0e14;"><i class="fa-solid fa-bolt"></i> Escalação Automática</button>
             </div>
 
             <div class="elenco-columns">
@@ -471,7 +470,7 @@
             </div>
         </div>
 
-        <!-- FINANÇAS -->
+        <!-- FINANÇAS (COM GRÁFICO DO CAIXA INTEGRADO) -->
         <div id="screen-financas" class="screen">
             <div class="finance-grid">
                 <div class="card">
@@ -483,16 +482,21 @@
                         <div class="finance-item"><span>Despesa com Salários</span><span id="fin-wages" style="color:var(--danger);">- R$ 0</span></div>
                         <div class="finance-item"><span>Gastos com Compras</span><span id="fin-spent" style="color:var(--danger);">- R$ 0</span></div>
                     </div>
-                </div>
-                <div class="card">
-                    <h3>Sistema de Empréstimos</h3>
-                    <div style="margin-bottom: 16px;">
-                        <div class="finance-item"><span>Dívida Ativa</span><span id="loan-debt-value" style="color: var(--danger); font-weight: bold;">R$ 0</span></div>
-                        <div class="finance-item"><span>Limite de Crédito</span><span id="loan-limit-value" style="color: var(--info);">R$ 0</span></div>
+                    
+                    <h3 style="margin-top:24px; margin-bottom:12px;">Sistema de Empréstimos</h3>
+                    <div class="finance-item"><span>Dívida Ativa</span><span id="loan-debt-value" style="color: var(--danger); font-weight: bold;">R$ 0</span></div>
+                    <div class="finance-item"><span>Limite de Crédito</span><span id="loan-limit-value" style="color: var(--info);">R$ 0</span></div>
+                    <div style="display: flex; gap: 10px; margin-top: 12px;">
+                        <button onclick="takeLoan()" style="background-color: var(--warning); color: black; flex: 1;"><i class="fa-solid fa-hand-holding-dollar"></i> Pegar R$ 1.500.000</button>
+                        <button onclick="payLoan()" class="danger" style="flex: 1;"><i class="fa-solid fa-money-bill-wave"></i> Pagar R$ 1.500.000</button>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="takeLoan()" style="background-color: var(--warning); color: black; flex: 1;">Pegar R$ 1.500.000</button>
-                        <button onclick="payLoan()" class="danger" style="flex: 1;">Pagar R$ 1.500.000</button>
+                </div>
+                
+                <!-- CONTAINER DO CHART.JS -->
+                <div class="card">
+                    <h3>Histórico de Evolução do Caixa</h3>
+                    <div style="position: relative; height:320px; width:100%; margin-top: 15px;">
+                        <canvas id="financeChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -522,6 +526,8 @@
         week: 1,
         formation: "4-4-2",
         finances: { tickets: 0, sponsor: 0, wages: 0, spent: 0 },
+        financeHistory: [12000000], // Para alimentar o gráfico
+        weeksLabels: ["Início"],
         clubs: [
             { id: "cfc", name: "Coritiba", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 },
             { id: "fla", name: "Flamengo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 85 },
@@ -565,12 +571,12 @@
     let isIntervalPaused = false;
     let matchMinute = 0;
     let aiEngine = { timeline: [], myGoals: 0, oppGoals: 0, opponent: null };
+    let myChart = null;
 
     function formatMoney(value) {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
     }
 
-    // SISTEMA DE SALVAMENTO (LOCALSTORAGE)
     function saveGame() {
         if (!gameState.userClub) return;
         localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
@@ -581,8 +587,6 @@
         let savedData = localStorage.getItem("grid_manager_save");
         if (savedData) {
             gameState = JSON.parse(savedData);
-            
-            // Força a regeração do calendário se necessário
             gameState.schedule = generateLeagueSchedule(gameState.clubs);
             
             document.getElementById('user-club-name').innerText = gameState.clubs.find(c => c.id === gameState.userClub).name;
@@ -592,6 +596,7 @@
             
             updateTopBar();
             switchScreen('dashboard');
+            initChart();
             alert("Jogo carregado! Voltando de onde parou... 📂");
         }
     }
@@ -626,7 +631,7 @@
         if (screenId === 'taticas') renderInteractiveTaticas();
         if (screenId === 'elenco') renderElencoColumns();
         if (screenId === 'mercado') renderMarket();
-        if (screenId === 'financas') renderFinancas();
+        if (screenId === 'financas') { renderFinancas(); updateChart(); }
         if (screenId === 'classificacoes') updateTabela();
     }
 
@@ -636,7 +641,7 @@
             selectHtml += `<div class="card" style="margin-bottom:0; padding:16px; text-align:center;">
                 <h4 style="font-weight:700;">${club.name}</h4>
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom:12px;">OVR ${club.power}</p>
-                <button onclick="selectClub('${club.id}')" style="width:100%;">Assumir</button>
+                <button onclick="selectClub('${club.id}')">Assumir</button>
             </div>`;
         });
         document.getElementById('club-select-list').innerHTML = selectHtml;
@@ -674,11 +679,49 @@
         document.getElementById('top-bar').style.display = 'flex';
         
         updateTopBar();
+        initChart();
         switchScreen('dashboard');
+    }
+
+    // PLUGIN 2: INICIALIZAR GRÁFICO TÁTICO/FINANCEIRO DO CHART.JS
+    function initChart() {
+        const ctx = document.getElementById('financeChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: gameState.weeksLabels,
+                datasets: [{
+                    label: 'Saldo do Caixa (R$)',
+                    data: gameState.financeHistory,
+                    borderColor: '#00e676',
+                    backgroundColor: 'rgba(0, 230, 118, 0.05)',
+                    borderWidth: 3,
+                    tension: 0.2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: '#222b3c' }, ticks: { color: '#707e94' } },
+                    y: { grid: { color: '#222b3c' }, ticks: { color: '#707e94' } }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        if (!myChart) return;
+        myChart.data.labels = gameState.weeksLabels;
+        myChart.data.datasets[0].data = gameState.financeHistory;
+        myChart.update();
     }
 
     function executeAutoSelection() {
         let req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 2, ATA: 2 };
+        if (gameState.formation === "4-4-2") req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 2, ATA: 2 };
         if (gameState.formation === "4-3-3") req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 1, ATA: 3 };
         if (gameState.formation === "3-5-2") req = { GOL: 1, ZAG: 3, VOL: 3, MEI: 2, ATA: 2 };
 
@@ -781,7 +824,7 @@
             let tempStatus = draggedPlayer.status;
             draggedPlayer.status = targetPlayer.status;
             targetPlayer.status = tempStatus;
-            renderElencoColumns(); prepareDashboard();
+            renderElencoColumns(); renderInteractiveTaticas(); prepareDashboard();
         }
     }
 
@@ -839,7 +882,7 @@
         matchIntervalToken = setInterval(() => {
             if (!isMatchSimulating || isIntervalPaused) { clearInterval(matchIntervalToken); return; }
             matchMinute++;
-            gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.20); });
+            gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.18); });
 
             if (matchMinute === 45) {
                 isIntervalPaused = true; clearInterval(matchIntervalToken);
@@ -849,13 +892,14 @@
 
             if (matchMinute >= 90) {
                 clearInterval(matchIntervalToken);
-                finishMatchDay(aiEngine.myGoals, aiEngine.oppGoals, gameState.schedule[gameState.week - 1], document.getElementById('match-live-log'), document.getElementById('btn-play'));
+                let currentRoundMatches = gameState.schedule[gameState.week - 1];
+                finishMatchDay(aiEngine.myGoals, aiEngine.oppGoals, currentRoundMatches, document.getElementById('match-live-log'), document.getElementById('btn-play'));
                 return;
             }
 
             let nextEvent = aiEngine.timeline.find(e => e.minute === matchMinute && !e.processed);
             if (nextEvent) { nextEvent.processed = true; isMatchSimulating = false; clearInterval(matchIntervalToken); renderMatchEventVisual(nextEvent); }
-        }, 60);
+        }, 55);
     }
 
     function resumeMatchSimulation() { isIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
@@ -864,10 +908,10 @@
         let logBox = document.getElementById('match-live-log');
         if (nextEvent.owner === "user") {
             aiEngine.myGoals += nextEvent.isGoal ? 1 : 0;
-            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>GOOOL! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>❌ Chance perdida!</div>`;
+            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>GOOOL! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>❌ Chance de gol do Coxa para fora!</div>`;
         } else {
             aiEngine.oppGoals += nextEvent.isGoal ? 1 : 0;
-            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>Gol deles! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>🧤 Defesa do goleiro!</div>`;
+            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>Gol deles! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>🧤 Defesaça do Morisco!</div>`;
         }
         isMatchSimulating = true; runMatchLoop();
     }
@@ -922,7 +966,7 @@
     function generateMarket() {
         gameState.market = [];
         for(let i=0; i<5; i++) {
-            gameState.market.push({ id: Date.now()+i, name: "Mercado "+i, age: 25, pos: "ATA", ovr: 75, val: 3000000, wage: 12000 });
+            gameState.market.push({ id: Date.now()+i, name: "Jogador "+i, age: 24, pos: "ATA", ovr: 74, val: 2800000, wage: 11000 });
         }
     }
 
@@ -951,16 +995,33 @@
     function generateMatchScript() {
         let myPower = getStartingElevenPower(); let oppPower = aiEngine.opponent.power;
         let userChanceRatio = myPower / (myPower + oppPower);
-        aiEngine.timeline = [{ minute: 20, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.4, processed: false }, { minute: 70, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.4, processed: false }];
+        aiEngine.timeline = [{ minute: 22, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false }, { minute: 71, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false }];
     }
 
     function finishMatchDay(myGoals, oppGoals, currentRoundMatches, logBox, btnPlay) {
-        // SALVAMENTO AUTOMÁTICO DE SEGURANÇA A CADA RODADA COMPLETA
-        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
-        
         let userClubObj = gameState.clubs.find(c => c.id === gameState.userClub);
         if(myGoals > oppGoals) { userClubObj.pts += 3; userClubObj.v++; } else if(myGoals === oppGoals) { userClubObj.pts += 1; }
-        gameState.week++; generateMarket(); simulateProposals(); updateTopBar(); prepareDashboard();
+        
+        let ticketRevenue = (myGoals * 100000) + 350000;
+        let wagesCost = gameState.players.reduce((acc, p) => acc + p.wage, 0);
+        gameState.money += (ticketRevenue + 150000) - wagesCost;
+
+        // Histórico para o gráfico
+        gameState.financeHistory.push(gameState.money);
+        gameState.weeksLabels.push("R " + gameState.week);
+
+        // PLUGIN 3: DISPARAR CONFETTI NO TÍTULO (FIM DA RODADA 38)
+        if(gameState.week === 38) {
+            gameState.clubs.sort((a,b) => b.pts - a.pts);
+            if(gameState.clubs[0].id === gameState.userClub) {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        gameState.week++; generateMarket(); simulateProposals(); 
+        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+        
+        updateTopBar(); prepareDashboard();
     }
 
     function updateTabela() {
