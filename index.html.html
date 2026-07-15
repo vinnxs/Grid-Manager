@@ -1,10 +1,9 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grid Manager - Ultimate Edition</title>
-    <!-- INJEÇÃO DOS PLUGINS E BIBLIOTECAS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -164,7 +163,6 @@
             height: 480px;
             position: relative;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.6);
-            overflow: hidden;
         }
 
         .field-center-line {
@@ -214,14 +212,14 @@
             background: rgba(18, 23, 33, 0.92);
             border: 2px solid var(--border);
             border-radius: 8px;
-            padding: 8px;
-            width: 115px;
+            padding: 6px;
+            width: 110px;
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text);
             box-shadow: 0 6px 16px rgba(0,0,0,0.5);
             transform: translate(-50%, -50%);
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             cursor: pointer;
             backdrop-filter: blur(4px);
         }
@@ -229,7 +227,6 @@
         .field-player-card.drag-over {
             border-color: var(--primary);
             background: rgba(0, 230, 118, 0.25);
-            box-shadow: 0 0 15px var(--primary-glow);
             transform: translate(-50%, -50%) scale(1.05);
         }
 
@@ -276,11 +273,13 @@
             height: 6px;
             border-radius: 3px;
             overflow: hidden;
+            margin: 4px auto 0 auto;
         }
 
         .stamina-bar {
             height: 100%;
             background: var(--primary);
+            width: 100%;
         }
 
         .badge { 
@@ -296,9 +295,6 @@
         .badge.pos-vol { color: #00bcd4; background: rgba(0, 188, 212, 0.1); }
         .badge.pos-mei { color: #e91e63; background: rgba(233, 30, 99, 0.1); }
         .badge.pos-ata { color: #ff5722; background: rgba(255, 87, 34, 0.1); }
-
-        .badge.titular { color: var(--primary); background: rgba(0, 230, 118, 0.1); }
-        .badge.reserva { color: var(--warning); background: rgba(255, 215, 64, 0.1); }
 
         .finance-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
         .finance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
@@ -334,12 +330,12 @@
     <!-- PAINEL PRINCIPAL -->
     <div id="main-interface" style="display: none;">
         <div class="grid-menu">
-            <button class="btn-nav active" onclick="switchScreen('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+            <button class="btn-nav active" id="btn-tab-dashboard" onclick="switchScreen('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
             <button class="btn-nav" id="btn-tab-taticas" onclick="switchScreen('taticas')"><i class="fa-solid fa-shield-halved"></i> Táticas</button>
             <button class="btn-nav" id="btn-tab-elenco" onclick="switchScreen('elenco')"><i class="fa-solid fa-users"></i> Elenco</button>
-            <button class="btn-nav" onclick="switchScreen('mercado')"><i class="fa-solid fa-cart-shopping"></i> Mercado</button>
-            <button class="btn-nav" onclick="switchScreen('financas')"><i class="fa-solid fa-building-columns"></i> Finanças</button>
-            <button class="btn-nav" onclick="switchScreen('classificacoes')"><i class="fa-solid fa-list-ol"></i> Tabela</button>
+            <button class="btn-nav" id="btn-tab-mercado" onclick="switchScreen('mercado')"><i class="fa-solid fa-cart-shopping"></i> Mercado</button>
+            <button class="btn-nav" id="btn-tab-financas" onclick="switchScreen('financas')"><i class="fa-solid fa-building-columns"></i> Finanças</button>
+            <button class="btn-nav" id="btn-tab-classificacoes" onclick="switchScreen('classificacoes')"><i class="fa-solid fa-list-ol"></i> Tabela</button>
             <button onclick="saveGame()" style="background-color: var(--info); color:#0b0e14; font-weight: bold;"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
         </div>
 
@@ -470,7 +466,7 @@
             </div>
         </div>
 
-        <!-- FINANÇAS (COM GRÁFICO DO CAIXA INTEGRADO) -->
+        <!-- FINANÇAS -->
         <div id="screen-financas" class="screen">
             <div class="finance-grid">
                 <div class="card">
@@ -492,7 +488,6 @@
                     </div>
                 </div>
                 
-                <!-- CONTAINER DO CHART.JS -->
                 <div class="card">
                     <h3>Histórico de Evolução do Caixa</h3>
                     <div style="position: relative; height:320px; width:100%; margin-top: 15px;">
@@ -526,8 +521,14 @@
         week: 1,
         formation: "4-4-2",
         finances: { tickets: 0, sponsor: 0, wages: 0, spent: 0 },
-        financeHistory: [12000000], // Para alimentar o gráfico
+        financeHistory: [12000000],
         weeksLabels: ["Início"],
+        matchSimulatingActive: false,
+        matchIntervalPaused: false,
+        currentMinute: 0,
+        myGoals: 0,
+        oppGoals: 0,
+        timeline: [],
         clubs: [
             { id: "cfc", name: "Coritiba", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 },
             { id: "fla", name: "Flamengo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 85 },
@@ -567,10 +568,7 @@
         ]
     };
 
-    let isMatchSimulating = false;
-    let isIntervalPaused = false;
-    let matchMinute = 0;
-    let aiEngine = { timeline: [], myGoals: 0, oppGoals: 0, opponent: null };
+    let matchIntervalToken = null;
     let myChart = null;
 
     function formatMoney(value) {
@@ -597,7 +595,19 @@
             updateTopBar();
             switchScreen('dashboard');
             initChart();
-            alert("Jogo carregado! Voltando de onde parou... 📂");
+
+            // CASO O USUÁRIO TENHA SALVOU NO MEIO DA PARTIDA (FIFA PAUSE RESTORE)
+            if (gameState.matchSimulatingActive) {
+                isMatchSimulating = true;
+                isIntervalPaused = gameState.matchIntervalPaused;
+                document.getElementById('match-live-log').innerHTML = `⏳ Recuperando partida pausada... Rodando minuto ${gameState.currentMinute}.<br>`;
+                if (!isIntervalPaused) {
+                    runMatchLoop();
+                } else {
+                    document.getElementById('btn-resume-match').style.display = 'block';
+                }
+            }
+            alert("Jogo carregado e restaurado com sucesso! 📂");
         }
     }
 
@@ -606,6 +616,18 @@
             document.getElementById("load-save-container").style.display = "block";
         }
     }
+
+    // LISTENER PARA DETECTAR QUANDO O JOGADOR MUDA DE ABA (AUTO-PAUSE ESTILO FIFA)
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && isMatchSimulating && !isIntervalPaused) {
+            // Congela o timer imediatamente
+            isMatchSimulating = false;
+            gameState.matchSimulatingActive = true;
+            gameState.matchIntervalPaused = false;
+            localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+            console.log("FIFA Auto-Pause: Jogo congelado e salvo em segundo plano.");
+        }
+    });
 
     function sortSquad(playersList) {
         return [...playersList].sort((a, b) => {
@@ -617,6 +639,12 @@
     }
 
     function switchScreen(screenId) {
+        // Se mudar de aba ou tela durante a simulação ativa, pausa automaticamente o relógio para manipulação tática
+        if (isMatchSimulating && screenId !== 'dashboard' && screenId !== 'taticas') {
+            isMatchSimulating = false;
+            gameState.matchSimulatingActive = true;
+        }
+
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
         
@@ -627,7 +655,14 @@
         const matchedBtn = navBtns.find(b => b.id === `btn-tab-${screenId}` || b.textContent.toLowerCase().includes(screenId.substring(0, 4)));
         if (matchedBtn) matchedBtn.classList.add('active');
 
-        if (screenId === 'dashboard') prepareDashboard();
+        if (screenId === 'dashboard') {
+            // Se voltou para o painel principal e estava em simulação congelada, retoma
+            if (gameState.matchSimulatingActive && !isIntervalPaused && !isMatchSimulating) {
+                isMatchSimulating = true;
+                runMatchLoop();
+            }
+            prepareDashboard();
+        }
         if (screenId === 'taticas') renderInteractiveTaticas();
         if (screenId === 'elenco') renderElencoColumns();
         if (screenId === 'mercado') renderMarket();
@@ -655,19 +690,19 @@
         if (clubId === "cfc") {
             const baseSquad = [
                 { name: "Pedro Morisco", age: 21, pos: "GOL", ovr: 75, wage: 15000, status: "Titular", stamina: 100, val: 3200000, onSale: false },
-                { name: "S. Gómez", age: 29, pos: "VOL", ovr: 76, wage: 25000, status: "Titular", stamina: 100, val: 5100000, onSale: false },
-                { name: "Josué", age: 33, pos: "MEI", ovr: 75, wage: 30000, status: "Titular", stamina: 100, val: 3400000, onSale: false },
-                { name: "Kuscevic", age: 27, pos: "ZAG", ovr: 75, wage: 24000, status: "Titular", stamina: 100, val: 4200000, onSale: false },
-                { name: "M. Antônio", age: 31, pos: "ZAG", ovr: 71, wage: 18000, status: "Titular", stamina: 100, val: 2100000, onSale: false },
+                { name: "Sebastián Gómez", age: 29, pos: "VOL", ovr: 78, wage: 25000, status: "Titular", stamina: 100, val: 5100000, onSale: false },
+                { name: "Josué Pesqueira", age: 33, pos: "MEI", ovr: 79, wage: 30000, status: "Titular", stamina: 100, val: 3400000, onSale: false },
+                { name: "B. Kuscevic", age: 27, pos: "ZAG", ovr: 75, wage: 24000, status: "Titular", stamina: 100, val: 4200000, onSale: false },
+                { name: "Maurício Antônio", age: 31, pos: "ZAG", ovr: 71, wage: 18000, status: "Titular", stamina: 100, val: 2100000, onSale: false },
                 { name: "Natanael", age: 23, pos: "ZAG", ovr: 72, wage: 15000, status: "Titular", stamina: 100, val: 3100000, onSale: false },
-                { name: "F. Jonatan", age: 26, pos: "ZAG", ovr: 72, wage: 19000, status: "Titular", stamina: 100, val: 2900000, onSale: false },
-                { name: "Thalisson", age: 22, pos: "ZAG", ovr: 69, wage: 10000, status: "Titular", stamina: 100, val: 1800000, onSale: false },
+                { name: "Felipe Jonatan", age: 26, pos: "ZAG", ovr: 72, wage: 19000, status: "Titular", stamina: 100, val: 2900000, onSale: false },
+                { name: "Thalisson G.", age: 22, pos: "ZAG", ovr: 69, wage: 10000, status: "Titular", stamina: 100, val: 1800000, onSale: false },
                 { name: "Lucas Ronier", age: 20, pos: "ATA", ovr: 76, wage: 22000, status: "Titular", stamina: 100, val: 6800000, onSale: false },
                 { name: "Breno Lopes", age: 28, pos: "ATA", ovr: 75, wage: 28000, status: "Titular", stamina: 100, val: 4500000, onSale: false },
                 { name: "Pedro Rocha", age: 29, pos: "ATA", ovr: 73, wage: 23000, status: "Titular", stamina: 100, val: 3600000, onSale: false },
-                { name: "G. Leite", age: 30, pos: "GOL", ovr: 66, wage: 8000, status: "Reserva", stamina: 100, val: 750000, onSale: false },
+                { name: "Gabriel Leite", age: 30, pos: "GOL", ovr: 66, wage: 8000, status: "Reserva", stamina: 100, val: 750000, onSale: false },
                 { name: "Vini Paulista", age: 24, pos: "VOL", ovr: 71, wage: 12000, status: "Reserva", stamina: 100, val: 2100000, onSale: false },
-                { name: "Yago F.", age: 23, pos: "MEI", ovr: 69, wage: 11000, status: "Reserva", stamina: 100, val: 1400000, onSale: false },
+                { name: "Yago Ferreira", age: 23, pos: "MEI", ovr: 69, wage: 11000, status: "Reserva", stamina: 100, val: 1400000, onSale: false },
                 { name: "Brandão", age: 19, pos: "ATA", ovr: 65, wage: 6000, status: "Reserva", stamina: 100, val: 950000, onSale: false }
             ];
             gameState.players = baseSquad.map((p, index) => ({ id: index + 100, ...p }));
@@ -683,9 +718,11 @@
         switchScreen('dashboard');
     }
 
-    // PLUGIN 2: INICIALIZAR GRÁFICO TÁTICO/FINANCEIRO DO CHART.JS
     function initChart() {
-        const ctx = document.getElementById('financeChart').getContext('2d');
+        const chartCanvas = document.getElementById('financeChart');
+        if (!chartCanvas) return;
+        const ctx = chartCanvas.getContext('2d');
+        if(myChart) myChart.destroy();
         myChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -721,7 +758,6 @@
 
     function executeAutoSelection() {
         let req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 2, ATA: 2 };
-        if (gameState.formation === "4-4-2") req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 2, ATA: 2 };
         if (gameState.formation === "4-3-3") req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 1, ATA: 3 };
         if (gameState.formation === "3-5-2") req = { GOL: 1, ZAG: 3, VOL: 3, MEI: 2, ATA: 2 };
 
@@ -759,6 +795,7 @@
     function renderElencoColumns() {
         const titularesContainer = document.getElementById('elenco-titulares-list');
         const reservasContainer = document.getElementById('elenco-reservas-list');
+        if(!titularesContainer || !reservasContainer) return;
         titularesContainer.innerHTML = ""; reservasContainer.innerHTML = "";
 
         let titulares = sortSquad(gameState.players.filter(p => p.status === "Titular"));
@@ -831,6 +868,7 @@
     function renderInteractiveTaticas() {
         const fieldContainer = document.getElementById('tactic-field-players');
         const benchContainer = document.getElementById('tactic-bench-list');
+        if(!fieldContainer || !benchContainer) return;
         fieldContainer.innerHTML = ""; benchContainer.innerHTML = "";
 
         let starters = sortSquad(gameState.players.filter(p => p.status === "Titular"));
@@ -842,7 +880,11 @@
                 let coord = layout[idx];
                 let card = document.createElement('div');
                 card.className = "field-player-card"; card.style.top = coord.top; card.style.left = coord.left;
-                card.innerHTML = `<div style="font-weight:bold;">${p.name.split(' ')[0]}</div><div style="color:var(--primary); font-size:0.7rem;">OVR ${p.ovr} (${p.pos})</div>`;
+                card.innerHTML = `
+                    <div style="font-weight:bold; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${p.name.split(' ')[0]}</div>
+                    <div style="color:var(--primary); font-size:0.65rem; font-weight:bold;">OVR ${p.ovr} (${p.pos})</div>
+                    <div class="stamina-container"><div class="stamina-bar" style="width: ${p.stamina}%;"></div></div>
+                `;
                 card.addEventListener('dragover', (e) => e.preventDefault());
                 card.addEventListener('drop', (e) => { let draggedId = e.dataTransfer.getData('text/plain'); executeSubstitution(draggedId, p.id); });
                 fieldContainer.appendChild(card);
@@ -852,90 +894,135 @@
         bench.forEach(p => {
             let row = document.createElement('div');
             row.className = "draggable-player-card"; row.draggable = true;
-            row.innerHTML = `<div><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span> <strong>${p.name}</strong></div><div>OVR ${p.ovr}</div>`;
+            row.innerHTML = `<div><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span> <strong>${p.name}</strong></div><div>OVR ${p.ovr} (${Math.floor(p.stamina)}%)</div>`;
             row.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', p.id));
             benchContainer.appendChild(row);
         });
-        document.getElementById('btn-save-taticas').style.display = isMatchSimulating ? 'block' : 'none';
+        document.getElementById('btn-save-taticas').style.display = gameState.matchSimulatingActive ? 'block' : 'none';
     }
 
     function executeSubstitution(reservaId, titularId) {
         let reserva = gameState.players.find(p => p.id == reservaId);
         let titular = gameState.players.find(p => p.id == titularId);
-        if (reserva && titular) { reserva.status = "Titular"; titular.status = "Reserva"; renderInteractiveTaticas(); prepareDashboard(); }
+        if (reserva && titular) { 
+            reserva.status = "Titular"; titular.status = "Reserva"; 
+            renderInteractiveTaticas(); 
+            if(gameState.matchSimulatingActive) recalculateMatchScript();
+            prepareDashboard(); 
+        }
     }
 
-    function saveTaticasAndReturn() { switchScreen('dashboard'); if (!isIntervalPaused) { isMatchSimulating = true; runMatchLoop(); } }
+    function saveTaticasAndReturn() { 
+        switchScreen('dashboard'); 
+        if (gameState.matchSimulatingActive && !isIntervalPaused) { 
+            isMatchSimulating = true; 
+            runMatchLoop(); 
+        } 
+    }
+    
     function openMidMatchSubstitution() { isMatchSimulating = false; switchScreen('taticas'); }
 
     function simulateMatchDay() {
         let starters = gameState.players.filter(p => p.status === "Titular");
         if (starters.length !== 11) { alert("Escale exatamente 11 titulares!"); return; }
-        isMatchSimulating = true; isIntervalPaused = false; matchMinute = 0;
+        
+        isMatchSimulating = true; 
+        isIntervalPaused = false; 
+        
+        gameState.matchSimulatingActive = true;
+        gameState.matchIntervalPaused = false;
+        gameState.currentMinute = 0;
+        gameState.myGoals = 0;
+        gameState.oppGoals = 0;
+
         document.getElementById('match-live-log').innerHTML = "🏁 Apito inicial! Começa o primeiro tempo...<br>";
-        generateMatchScript(); runMatchLoop();
+        generateMatchScript(); 
+        runMatchLoop();
     }
 
-    let matchIntervalToken = null;
     function runMatchLoop() {
         if (matchIntervalToken) clearInterval(matchIntervalToken);
         matchIntervalToken = setInterval(() => {
             if (!isMatchSimulating || isIntervalPaused) { clearInterval(matchIntervalToken); return; }
-            matchMinute++;
-            gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.18); });
+            
+            gameState.currentMinute++;
+            matchMinute = gameState.currentMinute;
 
-            if (matchMinute === 45) {
-                isIntervalPaused = true; clearInterval(matchIntervalToken);
-                document.getElementById('match-live-log').innerHTML += `<br>⏱️ <strong>Intervalo: Você ${aiEngine.myGoals} x ${aiEngine.oppGoals} ${aiEngine.opponent.name}</strong><br>`;
-                document.getElementById('btn-resume-match').style.display = 'block'; return;
-            }
+            gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.16); });
 
-            if (matchMinute >= 90) {
+            // RENDERIZAÇÃO EM TEMPO REAL NO CAMPO DA DASHBOARD DURANTE A PARTIDA
+            renderVisualField('dash-field-players');
+
+            if (gameState.currentMinute === 45) {
+                isIntervalPaused = true; 
+                gameState.matchIntervalPaused = true;
                 clearInterval(matchIntervalToken);
-                let currentRoundMatches = gameState.schedule[gameState.week - 1];
-                finishMatchDay(aiEngine.myGoals, aiEngine.oppGoals, currentRoundMatches, document.getElementById('match-live-log'), document.getElementById('btn-play'));
+                document.getElementById('match-live-log').innerHTML += `<br>⏱️ <strong>Intervalo: Você ${gameState.myGoals} x ${gameState.oppGoals} ${aiEngine.opponent.name}</strong><br>`;
+                document.getElementById('btn-resume-match').style.display = 'block'; 
+                localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
                 return;
             }
 
-            let nextEvent = aiEngine.timeline.find(e => e.minute === matchMinute && !e.processed);
-            if (nextEvent) { nextEvent.processed = true; isMatchSimulating = false; clearInterval(matchIntervalToken); renderMatchEventVisual(nextEvent); }
-        }, 55);
+            if (gameState.currentMinute >= 90) {
+                clearInterval(matchIntervalToken);
+                finishMatchDay(gameState.myGoals, gameState.oppGoals, gameState.schedule[gameState.week - 1], document.getElementById('match-live-log'), document.getElementById('btn-play'));
+                return;
+            }
+
+            let nextEvent = gameState.timeline.find(e => e.minute === gameState.currentMinute && !e.processed);
+            if (nextEvent) { 
+                nextEvent.processed = true; 
+                isMatchSimulating = false; 
+                clearInterval(matchIntervalToken); 
+                renderMatchEventVisual(nextEvent); 
+            }
+        }, 120); // Ajuste fino na cadência para dar tempo de assistir e gerenciar o FIFA pause
     }
 
-    function resumeMatchSimulation() { isIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
+    function resumeMatchSimulation() { isIntervalPaused = false; gameState.matchIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
 
     function renderMatchEventVisual(nextEvent) {
         let logBox = document.getElementById('match-live-log');
         if (nextEvent.owner === "user") {
-            aiEngine.myGoals += nextEvent.isGoal ? 1 : 0;
-            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>GOOOL! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>❌ Chance de gol do Coxa para fora!</div>`;
+            gameState.myGoals += nextEvent.isGoal ? 1 : 0;
+            logBox.innerHTML += nextEvent.isGoal ? `<div style="color:var(--primary); font-weight:bold;">⚽ GOOOL DO COXA! Você ${gameState.myGoals} x ${gameState.oppGoals}</div>` : `<div>❌ Chance perdida de gol para fora!</div>`;
         } else {
-            aiEngine.oppGoals += nextEvent.isGoal ? 1 : 0;
-            logBox.innerHTML += nextEvent.isGoal ? `<div>⚽ <strong>Gol deles! Você ${aiEngine.myGoals}</strong> x ${aiEngine.oppGoals}</div>` : `<div>🧤 Defesaça do Morisco!</div>`;
+            gameState.oppGoals += nextEvent.isGoal ? 1 : 0;
+            logBox.innerHTML += nextEvent.isGoal ? `<div style="color:var(--danger); font-weight:bold;">⚽ Gol deles! Você ${gameState.myGoals} x ${gameState.oppGoals}</div>` : `<div>🧤 Defesaça espetacular de Pedro Morisco!</div>`;
         }
-        isMatchSimulating = true; runMatchLoop();
+        logBox.scrollTop = logBox.scrollHeight;
+        isMatchSimulating = true; 
+        runMatchLoop();
     }
 
     function prepareDashboard() {
-        if (gameState.week > 38) return;
+        if (!gameState.userClub || gameState.week > 38) return;
         document.getElementById('btn-play').style.display = isMatchSimulating ? 'none' : 'block';
         document.getElementById('btn-auto-escalar-dash').style.display = isMatchSimulating ? 'none' : 'block';
-        document.getElementById('mid-match-actions').style.display = isMatchSimulating ? 'block' : 'none';
+        document.getElementById('mid-match-actions').style.display = gameState.matchSimulatingActive ? 'block' : 'none';
 
         let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
         aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
         document.getElementById('next-match-info').innerText = `Próximo jogo vs ${aiEngine.opponent.name}`;
+        document.getElementById('dash-formation-badge').innerText = gameState.formation;
         renderVisualField('dash-field-players');
     }
 
+    // FIX DA RENDERIZAÇÃO DOS JOGADORES E STAMINAS NO CAMPO DE JOGO DA DASHBOARD
     function renderVisualField(containerId) {
-        const container = document.getElementById(containerId); container.innerHTML = "";
+        const container = document.getElementById(containerId); 
+        if(!container) return;
+        container.innerHTML = "";
         let starters = sortSquad(gameState.players.filter(p => p.status === "Titular"));
         let layout = positionsLayout[gameState.formation] || positionsLayout["4-4-2"];
         starters.forEach((p, idx) => {
             if (idx < 11) {
                 let coord = layout[idx];
-                container.innerHTML += `<div class="field-player-card" style="top: ${coord.top}; left: ${coord.left}; border-style: solid;"><div>${p.name.split(' ')[0]}</div><div style="color:var(--primary); font-size:0.7rem;">${p.pos}</div></div>`;
+                container.innerHTML += `<div class="field-player-card" style="top: ${coord.top}; left: ${coord.left}; border-style: solid;">
+                    <div style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name.split(' ')[0]}</div>
+                    <div style="color:var(--primary); font-size:0.65rem; font-weight:bold;">OVR ${p.ovr} (${p.pos})</div>
+                    <div class="stamina-container"><div class="stamina-bar" style="width: ${p.stamina}%;"></div></div>
+                </div>`;
             }
         });
     }
@@ -953,8 +1040,9 @@
 
     function renderProposals() {
         const container = document.getElementById('proposals-list');
-        if (gameState.proposals.length === 0) { container.innerHTML = "<p>Nenhuma proposta.</p>"; return; }
-        container.innerHTML = `<button onclick="acceptProposal(${gameState.proposals[0].id})">Aceitar proposta por ${gameState.proposals[0].playerName}</button>`;
+        if (!container) return;
+        if (gameState.proposals.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:0.9rem;'>Nenhuma proposta.</p>"; return; }
+        container.innerHTML = `<div class="proposal-card"><div><strong>${gameState.proposals[0].playerName}</strong></div><button onclick="acceptProposal(${gameState.proposals[0].id})">Aceitar Proposta de ${formatMoney(gameState.proposals[0].offer)}</button></div>`;
     }
 
     function acceptProposal(id) {
@@ -965,20 +1053,28 @@
 
     function generateMarket() {
         gameState.market = [];
+        const firstNames = ["Lucas", "Renato", "Rodrigo", "Felipe", "Gabriel", "Matheus", "Thiago", "Gerson"];
+        const lastNames = ["Santos", "Silva", "Oliveira", "Souza", "Pereira", "Costa", "Mendes"];
+        const positions = ["GOL", "ZAG", "VOL", "MEI", "ATA"];
+        
         for(let i=0; i<5; i++) {
-            gameState.market.push({ id: Date.now()+i, name: "Jogador "+i, age: 24, pos: "ATA", ovr: 74, val: 2800000, wage: 11000 });
+            let ovr = Math.floor(Math.random() * 12) + 70;
+            let age = Math.floor(Math.random() * 14) + 19;
+            let pos = positions[Math.floor(Math.random() * positions.length)];
+            let name = firstNames[Math.floor(Math.random() * firstNames.length)] + " " + lastNames[Math.floor(Math.random() * lastNames.length)];
+            gameState.market.push({ id: Date.now() + i, name: name, age: age, pos: pos, ovr: ovr, val: Math.floor((ovr * ovr * 1100) * (28 / age)), wage: ovr * 280 });
         }
     }
 
     function renderMarket() {
         let tbody = "";
-        gameState.market.forEach(p => { tbody += `<tr><td>${p.name}</td><td>${p.age}</td><td>${p.pos}</td><td>${p.ovr}</td><td>${formatMoney(p.val)}</td><td>${formatMoney(p.wage)}</td><td><button onclick="buyPlayer(${p.id})">Comprar</button></td></tr>`; });
+        gameState.market.forEach(p => { tbody += `<tr><td>${p.name}</td><td>${p.age}</td><td><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span></td><td><strong>${p.ovr}</strong></td><td>${formatMoney(p.val)}</td><td>${formatMoney(p.wage)}</td><td><button onclick="buyPlayer(${p.id})">Comprar</button></td></tr>`; });
         document.getElementById('table-mercado').querySelector('tbody').innerHTML = tbody;
     }
 
     function buyPlayer(id) {
         let idx = gameState.market.findIndex(p => p.id === id); let p = gameState.market[idx];
-        if (gameState.money < p.val) return;
+        if (gameState.money < p.val) return alert("Caixa insuficiente!");
         gameState.money -= p.val; gameState.players.push({...p, status:"Reserva", stamina:100});
         gameState.market.splice(idx, 1); updateTopBar(); renderMarket();
     }
@@ -995,24 +1091,57 @@
     function generateMatchScript() {
         let myPower = getStartingElevenPower(); let oppPower = aiEngine.opponent.power;
         let userChanceRatio = myPower / (myPower + oppPower);
-        aiEngine.timeline = [{ minute: 22, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false }, { minute: 71, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false }];
+        gameState.timeline = [
+            { minute: Math.floor(Math.random() * 15) + 5, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false },
+            { minute: Math.floor(Math.random() * 20) + 21, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.40, processed: false },
+            { minute: Math.floor(Math.random() * 20) + 50, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false },
+            { minute: Math.floor(Math.random() * 15) + 71, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.40, processed: false }
+        ];
+        gameState.timeline.sort((a,b) => a.minute - b.minute);
+    }
+
+    function recalculateMatchScript() {
+        let myPower = getStartingElevenPower(); let oppPower = aiEngine.opponent.power;
+        let userChanceRatio = myPower / (myPower + oppPower);
+        gameState.timeline.forEach(event => {
+            if (!event.processed) {
+                event.owner = Math.random() < userChanceRatio ? "user" : "opp";
+                event.isGoal = Math.random() < (event.owner === "user" ? (0.28 + (myPower - oppPower) * 0.01) : (0.28 + (oppPower - myPower) * 0.01));
+            }
+        });
     }
 
     function finishMatchDay(myGoals, oppGoals, currentRoundMatches, logBox, btnPlay) {
+        isMatchSimulating = false;
+        gameState.matchSimulatingActive = false;
+        document.getElementById('mid-match-actions').style.display = 'none';
+        btnPlay.style.display = 'block';
+        logBox.innerHTML += `<br><strong>🏁 Fim de Jogo! Placar final: Você ${myGoals} x ${oppGoals} ${aiEngine.opponent.name}</strong><br>`;
+
         let userClubObj = gameState.clubs.find(c => c.id === gameState.userClub);
-        if(myGoals > oppGoals) { userClubObj.pts += 3; userClubObj.v++; } else if(myGoals === oppGoals) { userClubObj.pts += 1; }
-        
+        userClubObj.sg += (myGoals - oppGoals); aiEngine.opponent.sg += (oppGoals - myGoals);
+        if(myGoals > oppGoals) { userClubObj.pts += 3; userClubObj.v++; aiEngine.opponent.d++; } 
+        else if(myGoals === oppGoals) { userClubObj.pts += 1; userClubObj.e++; aiEngine.opponent.e++; } 
+        else { aiEngine.opponent.pts += 3; aiEngine.opponent.v++; userClubObj.d++; }
+
+        currentRoundMatches.forEach(match => {
+            if(match.home !== gameState.userClub && match.away !== gameState.userClub) {
+                let c1 = gameState.clubs.find(c => c.id === match.home); let c2 = gameState.clubs.find(c => c.id === match.away);
+                let g1 = Math.floor(Math.random() * 3), g2 = Math.floor(Math.random() * 3);
+                c1.sg += (g1 - g2); c2.sg += (g2 - g1);
+                if(g1 > g2) { c1.pts += 3; c1.v++; c2.d++; } else if(g1 === g2) { c1.pts += 1; c2.pts += 1; c1.e++; c2.e++; } else { c2.pts += 3; c2.v++; c1.d++; }
+            }
+        });
+
         let ticketRevenue = (myGoals * 100000) + 350000;
         let wagesCost = gameState.players.reduce((acc, p) => acc + p.wage, 0);
         gameState.money += (ticketRevenue + 150000) - wagesCost;
 
-        // Histórico para o gráfico
         gameState.financeHistory.push(gameState.money);
-        gameState.weeksLabels.push("R " + gameState.week);
+        gameState.weeksLabels.push("R" + gameState.week);
 
-        // PLUGIN 3: DISPARAR CONFETTI NO TÍTULO (FIM DA RODADA 38)
         if(gameState.week === 38) {
-            gameState.clubs.sort((a,b) => b.pts - a.pts);
+            gameState.clubs.sort((a,b) => b.pts - a.pts || b.sg - a.sg);
             if(gameState.clubs[0].id === gameState.userClub) {
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
             }
@@ -1020,14 +1149,13 @@
 
         gameState.week++; generateMarket(); simulateProposals(); 
         localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
-        
         updateTopBar(); prepareDashboard();
     }
 
     function updateTabela() {
-        gameState.clubs.sort((a,b) => b.pts - a.pts);
+        gameState.clubs.sort((a,b) => b.pts - a.pts || b.sg - a.sg);
         let tbody = "";
-        gameState.clubs.forEach((c, idx) => { tbody += `<tr><td>${idx+1}</td><td>${c.name}</td><td>${c.pts}</td><td>${c.v}</td><td>${c.e}</td><td>${c.d}</td><td>${c.sg}</td></tr>`; });
+        gameState.clubs.forEach((c, idx) => { tbody += `<tr><td>${idx+1}</td><td><strong>${c.name}</strong></td><td>${c.pts}</td><td>${c.v}</td><td>${c.e}</td><td>${c.d}</td><td>${c.sg}</td></tr>`; });
         document.getElementById('table-classificacao').querySelector('tbody').innerHTML = tbody;
     }
 
