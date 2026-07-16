@@ -608,7 +608,6 @@
         loanLimit: 0,
         loanChunk: 2000000,
         week: 1,
-        maxWeeks: 14, 
         formation: "4-4-2",
         finances: { tickets: 0, sponsor: 0, wages: 0, spent: 0 },
         financeHistory: [],
@@ -818,24 +817,30 @@
         document.getElementById('hist-losses').innerText = gameState.stats.losses;
     }
 
+    // SISTEMA DE PROPOSTAS REALISTAS LIMITADAS CONFORME REPUTAÇÃO DO TÉCNICO
     function initGame() {
         let selectHtml = "";
         let availableClubs = [];
 
+        // Se for o início absoluto da carreira, o técnico recebe convites de times intermediários/reconstrução
         if(gameState.stats.matches === 0) {
             availableClubs = gameState.clubs.filter(c => c.id === "cfc" || c.id === "vasco");
             document.getElementById('select-screen-desc').innerText = "Início de Carreira: Você recebeu propostas de duas equipes querendo reestruturação.";
         } else {
+            // Se já tem estrada, as propostas são geradas dinamicamente com base no aproveitamento
             let winRate = gameState.stats.wins / gameState.stats.matches;
             let sortedClubs = [...gameState.clubs].sort((a,b) => b.power - a.power);
 
             if(winRate >= 0.55) {
+                // Alto escalão: Propostas de gigantes do topo
                 availableClubs = [sortedClubs[0], sortedClubs[1]];
                 document.getElementById('select-screen-desc').innerText = `Seu prestígio está alto (${Math.floor(winRate*100)}% de vitórias)! Os gigantes da liga disputam sua contratação.`;
             } else if(winRate >= 0.35) {
+                // Escalão médio
                 availableClubs = [sortedClubs[3], sortedClubs[4]];
                 document.getElementById('select-screen-desc').innerText = `Boa reputação (${Math.floor(winRate*100)}% de vitórias). Equipes competitivas te enviaram contratos.`;
             } else {
+                // Baixo escalão ou fase ruim
                 availableClubs = [sortedClubs[6], sortedClubs[7]];
                 document.getElementById('select-screen-desc').innerText = "Fase de reabilitação. Apenas clubes lutando contra o rebaixamento te ofereceram cargo.";
             }
@@ -1192,7 +1197,7 @@
     }
 
     function prepareDashboard() {
-        if (!gameState.userClub || gameState.week > gameState.maxWeeks) return;
+        if (!gameState.userClub || gameState.week > 14) return;
         document.getElementById('btn-play').style.display = gameState.matchSimulatingActive ? 'none' : 'block';
         document.getElementById('btn-auto-escalar-dash').style.display = gameState.matchSimulatingActive ? 'none' : 'block';
         document.getElementById('mid-match-actions').style.display = gameState.matchSimulatingActive ? 'flex' : 'none';
@@ -1351,6 +1356,11 @@
     }
 
     function finishMatchDay(myGoals, oppGoals, currentRoundMatches, logBox, btnPlay) {
+        // Recuperação de Stamina de 20 pontos
+        gameState.players.forEach(p => {
+            p.stamina = Math.min(p.stamina + 20, 100);
+        });
+
         isMatchSimulating = false;
         gameState.matchSimulatingActive = false;
         document.getElementById('mid-match-actions').style.display = 'none';
@@ -1385,7 +1395,7 @@
         gameState.financeHistory.push(gameState.money);
         gameState.weeksLabels.push("R" + gameState.week);
 
-        if(gameState.week === gameState.maxWeeks) {
+        if(gameState.week === 14) {
             gameState.clubs.sort((a,b) => b.pts - a.pts || b.sg - a.sg);
             if(gameState.clubs[0].id === gameState.userClub) {
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
