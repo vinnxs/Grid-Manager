@@ -2,70 +2,72 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Grid Manager - Full Pyramid Edition</title>
+    <title>Grid Manager - Full Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
     <style>
-        :root { --bg-main: #0b0e14; --bg-card: #121721; --primary: #00e676; --text: #f8f9fa; --border: #222b3c; }
-        body { background-color: var(--bg-main); color: var(--text); font-family: sans-serif; padding: 24px; }
+        :root { --bg-main: #0b0e14; --bg-card: #121721; --primary: #00e676; --text: #fff; --border: #222b3c; }
+        body { background: var(--bg-main); color: var(--text); padding: 20px; font-family: sans-serif; }
         .screen { display: none; } .screen.active { display: block; }
-        .card { background-color: var(--bg-card); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; }
-        button { background-color: var(--primary); color: #0b0e14; border: none; padding: 12px 20px; font-weight: 700; border-radius: 8px; cursor: pointer; }
+        #club-select-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
+        button { background: var(--primary); border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-
-<div id="screen-select" class="screen active">
-    <div class="card">
-        <h2>Escolha seu clube</h2>
-        <div id="club-select-list"></div>
+    <div id="screen-select" class="screen active">
+        <div class="card">
+            <h2>Escolha seu Clube</h2>
+            <div id="club-select-list"></div>
+        </div>
     </div>
-</div>
-
-<div id="main-interface" class="screen">
-    <h2 id="display-title">Dashboard</h2>
-    <button onclick="localStorage.clear(); location.reload()">Resetar Jogo</button>
-</div>
-
-<script>
+    <div id="main-interface" class="screen">
+        </div><script>
     let gameState = {
-        userClub: "",
-        week: 1,
-        maxWeeks: 10, // Corrigido para 10 rodadas
+        userClub: "", week: 1, maxWeeks: 10, formation: "4-4-2", stats: { matches: 0, wins: 0, losses: 0 },
         clubs: [
-            // Série A (6 times)
-            { id: "c1", name: "Time A1", serie: "A", power: 80 }, { id: "c2", name: "Time A2", serie: "A", power: 79 },
-            { id: "c3", name: "Time A3", serie: "A", power: 78 }, { id: "c4", name: "Time A4", serie: "A", power: 77 },
-            { id: "c5", name: "Time A5", serie: "A", power: 76 }, { id: "c6", name: "Time A6", serie: "A", power: 75 },
-            // Série B (6 times)
-            { id: "c7", name: "Time B1", serie: "B", power: 70 }, { id: "c8", name: "Time B2", serie: "B", power: 69 },
-            { id: "c9", name: "Time B3", serie: "B", power: 68 }, { id: "c10", name: "Time B4", serie: "B", power: 67 },
-            { id: "c11", name: "Time B5", serie: "B", power: 66 }, { id: "c12", name: "Time B6", serie: "B", power: 65 },
-            // Série C (6 times)
-            { id: "c13", name: "Time C1", serie: "C", power: 60 }, { id: "c14", name: "Time C2", serie: "C", power: 59 },
-            { id: "c15", name: "Time C3", serie: "C", power: 58 }, { id: "c16", name: "Time C4", serie: "C", power: 57 },
-            { id: "c17", name: "Time C5", serie: "C", power: 56 }, { id: "c18", name: "Time C6", serie: "C", power: 55 }
+            { id: "a1", name: "Time A1", serie: "A", power: 80, initBudget: 100000000 },
+            { id: "a2", name: "Time A2", serie: "A", power: 79, initBudget: 90000000 },
+            { id: "a3", name: "Time A3", serie: "A", power: 78, initBudget: 80000000 },
+            { id: "a4", name: "Time A4", serie: "A", power: 77, initBudget: 70000000 },
+            { id: "a5", name: "Time A5", serie: "A", power: 76, initBudget: 60000000 },
+            { id: "a6", name: "Time A6", serie: "A", power: 75, initBudget: 50000000 },
+            { id: "b1", name: "Time B1", serie: "B", power: 70, initBudget: 40000000 },
+            { id: "b2", name: "Time B2", serie: "B", power: 69, initBudget: 35000000 },
+            { id: "b3", name: "Time B3", serie: "B", power: 68, initBudget: 30000000 },
+            { id: "b4", name: "Time B4", serie: "B", power: 67, initBudget: 25000000 },
+            { id: "b5", name: "Time B5", serie: "B", power: 66, initBudget: 20000000 },
+            { id: "b6", name: "Time B6", serie: "B", power: 65, initBudget: 15000000 },
+            { id: "c1", name: "Time C1", serie: "C", power: 60, initBudget: 10000000 },
+            { id: "c2", name: "Time C2", serie: "C", power: 59, initBudget: 9000000 },
+            { id: "c3", name: "Time C3", serie: "C", power: 58, initBudget: 8000000 },
+            { id: "c4", name: "Time C4", serie: "C", power: 57, initBudget: 7000000 },
+            { id: "c5", name: "Time C5", serie: "C", power: 56, initBudget: 6000000 },
+            { id: "c6", name: "Time C6", serie: "C", power: 55, initBudget: 5000000 }
         ],
-        players: [], savedClubsSquads: {}, stats: { matches: 0, wins: 0, losses: 0 }
+        players: []
     };
 
     function initGame() {
         const list = document.getElementById('club-select-list');
-        gameState.clubs.forEach(club => {
+        gameState.clubs.forEach(c => {
             let div = document.createElement('div');
             div.className = "card";
-            div.innerHTML = `<h4>${club.name}</h4><p>Série ${club.serie} | Força: ${club.power}</p><button onclick="startCareer('${club.id}')">Assumir</button>`;
+            div.innerHTML = `<h4>${c.name}</h4><p>Série ${c.serie} | Força: ${c.power}</p><button onclick="startCareer('${c.id}')">Assumir</button>`;
             list.appendChild(div);
         });
-    }
-
-    function startCareer(clubId) {
+    }function startCareer(clubId) {
         gameState.userClub = clubId;
         document.getElementById('screen-select').classList.remove('active');
         document.getElementById('main-interface').classList.add('active');
-        document.getElementById('display-title').innerText = "Gerenciando: " + gameState.clubs.find(c=>c.id==clubId).name;
+        // Adicione aqui a lógica de inicialização do Dashboard original
+    }
+
+    function playMatch() {
+        // Seu motor de jogo original entra aqui
+        alert("Simulando rodada " + gameState.week);
+        gameState.week++;
     }
 
     window.onload = initGame;
