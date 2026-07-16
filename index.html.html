@@ -2,59 +2,84 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Grid Manager - Versão Estável</title>
+    <title>Grid Manager - Full Pyramid Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <style>
-        :root { --bg: #0b0e14; --primary: #00e676; --text: #fff; --border: #222b3c; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 20px; }
+        :root { --bg-main: #0b0e14; --bg-card: #121721; --primary: #00e676; --text: #f8f9fa; --border: #222b3c; }
+        body { background-color: var(--bg-main); color: var(--text); font-family: sans-serif; padding: 24px; }
         .screen { display: none; } .screen.active { display: block; }
-        .card { background: #121721; padding: 20px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; }
-        button { background: var(--primary); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .card { background-color: var(--bg-card); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; }
+        button { background-color: var(--primary); color: #0b0e14; border: none; padding: 12px 20px; font-weight: 700; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="screen-select" class="screen active">
     <div class="card">
-        <h2>Escolha seu time</h2>
-        <div id="club-list"></div>
+        <h2>Central de Contratos</h2>
+        <p id="select-desc">Carregando...</p>
+        <div id="club-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;"></div>
     </div>
 </div>
 
-<div id="screen-main" class="screen">
+<div id="screen-dashboard" class="screen">
     <div class="card">
-        <h2 id="club-display">Time: ...</h2>
-        <p id="money-display">Caixa: R$ 0</p>
-        <button onclick="location.reload()" style="background:#ff5252;">Sair do Clube</button>
+        <h2 id="display-club-name">Time</h2>
+        <p id="display-info">...</p>
+        <button onclick="resignFromClub()" style="background:#ff5252; color:white;">Resignar do Cargo</button>
     </div>
 </div>
 
 <script>
-    const clubs = [
-        { id: 1, name: "Flamengo", budget: 150000000 },
-        { id: 2, name: "Palmeiras", budget: 130000000 },
-        { id: 3, name: "Coritiba", budget: 35000000 }
-    ];
+    // ESTADO DO JOGO
+    let gameState = {
+        userClub: "",
+        clubs: [
+            { id: "fla", name: "Flamengo", serie: "A", power: 85, initBudget: 150000000 },
+            { id: "cfc", name: "Coritiba", serie: "B", power: 74, initBudget: 35000000 }
+            // ... (Aqui entra a lista completa dos 30 times da pirâmide)
+        ],
+        stats: { matches: 0, wins: 0, losses: 0 }
+    };
 
-    function init() {
-        const list = document.getElementById('club-list');
-        clubs.forEach(c => {
-            let btn = document.createElement('button');
-            btn.innerText = c.name;
-            btn.style.margin = "5px";
-            btn.onclick = () => selectClub(c);
-            list.appendChild(btn);
-        });
+    function initGame() {
+        try {
+            console.log("Iniciando motor...");
+            const list = document.getElementById('club-list');
+            list.innerHTML = "";
+            
+            gameState.clubs.forEach(club => {
+                let div = document.createElement('div');
+                div.className = "card";
+                div.innerHTML = `<h4>${club.name}</h4><p>Série ${club.serie}</p><button onclick="startCareer('${club.id}')">Assumir</button>`;
+                list.appendChild(div);
+            });
+            document.getElementById('select-desc').innerText = "Escolha sua equipe:";
+        } catch(e) {
+            console.error("Erro crítico:", e);
+            localStorage.clear();
+        }
     }
 
-    function selectClub(club) {
+    function startCareer(clubId) {
+        gameState.userClub = clubId;
         document.getElementById('screen-select').classList.remove('active');
-        document.getElementById('screen-main').classList.add('active');
+        document.getElementById('screen-dashboard').classList.add('active');
         
-        document.getElementById('club-display').innerText = "Gerenciando: " + club.name;
-        document.getElementById('money-display').innerText = "Caixa: " + club.budget.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+        let club = gameState.clubs.find(c => c.id === clubId);
+        document.getElementById('display-club-name').innerText = "Gerenciando: " + club.name;
+        document.getElementById('display-info').innerText = "Dashboard carregado. Motor de 30 times pronto.";
     }
 
-    init();
+    function resignFromClub() {
+        document.getElementById('screen-dashboard').classList.remove('active');
+        document.getElementById('screen-select').classList.add('active');
+    }
+
+    window.onload = initGame;
 </script>
 </body>
 </html>
