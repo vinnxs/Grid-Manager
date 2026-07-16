@@ -1,16 +1,69 @@
 <!DOCTYPE html>
-<html>
-<body style="background:#0b0e14; color:white; font-family:sans-serif; padding:50px;">
-    <h1>Diagnosticando...</h1>
-    <div id="error-log" style="color:#ff5252; font-weight:bold; margin-top:20px;"></div>
-    <script>
-        try {
-            // Tentando rodar a função principal
-            initGame();
-            document.getElementById('error-log').innerText = "initGame() rodou sem erros.";
-        } catch (err) {
-            document.getElementById('error-log').innerText = "ERRO DETECTADO: " + err.message + " | Linha: " + err.stack;
-        }
-    </script>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Grid Manager - Versão Corrigida</title>
+    <style>
+        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 20px; }
+        .screen { display: none; } .screen.active { display: block; }
+        .card { background: #121721; padding: 20px; border-radius: 10px; border: 1px solid #222b3c; margin-bottom: 20px; }
+        button { background: #00e676; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="screen-select" class="screen active">
+    <div class="card">
+        <h2>Escolha seu time</h2>
+        <div id="club-list"></div>
+    </div>
+</div>
+
+<div id="screen-main" class="screen">
+    <div class="card">
+        <h2 id="club-name-display">Time</h2>
+        <p id="club-money-display">Caixa: R$ 0</p>
+        <button onclick="location.reload()">Sair do Clube</button>
+    </div>
+</div>
+
+<script>
+    // Estrutura corrigida (Força dos times corrigida para evitar NaN)
+    const clubs = [
+        { id: "fla", name: "Flamengo", power: 85, budget: 150000000 },
+        { id: "pal", name: "Palmeiras", power: 84, budget: 130000000 },
+        { id: "vasco", name: "Vasco", power: 75, budget: 36000000 },
+        { id: "cfc", name: "Coritiba", power: 74, budget: 35000000 },
+        { id: "cuiaba", name: "Cuiabá", power: 72, budget: 26000000 },
+        { id: "sport", name: "Sport", power: 72, budget: 24000000 }
+    ];
+
+    function initGame() {
+        console.log("Inicializando jogo...");
+        // Limpa save antigo que causa travamento
+        localStorage.clear();
+        
+        const list = document.getElementById('club-list');
+        list.innerHTML = "";
+        
+        clubs.forEach(c => {
+            let btn = document.createElement('button');
+            btn.innerText = c.name;
+            btn.style.margin = "5px";
+            btn.onclick = () => selectClub(c);
+            list.appendChild(btn);
+        });
+    }
+
+    function selectClub(club) {
+        document.getElementById('screen-select').classList.remove('active');
+        document.getElementById('screen-main').classList.add('active');
+        
+        document.getElementById('club-name-display').innerText = "Gerenciando: " + club.name;
+        document.getElementById('club-money-display').innerText = "Caixa: " + club.budget.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+    }
+
+    window.onload = initGame;
+</script>
 </body>
 </html>
