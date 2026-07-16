@@ -23,6 +23,7 @@
             --border: #222b3c;
             --field-green: #1b5e20;
             --field-lines: rgba(255, 255, 255, 0.25);
+            --bg-log: #161d2a;
         }
 
         * {
@@ -139,17 +140,30 @@
 
         th { background-color: rgba(255,255,255,0.01); color: var(--text-muted); font-weight: 600; }
 
+        /* NOVA TRANSMISSÃO DE LANCES MODERNA (PAINEL DARK PREMIUM) */
         .log-box {
-            background: #07090e;
+            background: var(--bg-log);
             padding: 16px;
-            height: 250px;
+            height: 270px;
             overflow-y: auto;
-            border-radius: 8px;
-            font-family: monospace;
-            color: #00ff88;
+            border-radius: 10px;
             font-size: 0.9rem;
+            line-height: 1.6;
             border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
+
+        .match-event-row {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.02);
+            border-left: 3px solid var(--text-muted);
+        }
+        .match-event-row.user-event { border-left-color: var(--info); }
+        .match-event-row.opp-event { border-left-color: var(--danger); }
+        .match-event-row.goal-event { border-left-color: var(--primary); background: rgba(0, 230, 118, 0.05); font-weight: 600; }
 
         .football-field {
             background-color: var(--field-green);
@@ -299,6 +313,11 @@
         .finance-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
         .finance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .proposal-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 16px; }
+        .history-card { background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center; }
+        .history-card h4 { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px; }
+        .history-card p { font-size: 1.2rem; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -336,6 +355,7 @@
             <button class="btn-nav" id="btn-tab-mercado" onclick="switchScreen('mercado')"><i class="fa-solid fa-cart-shopping"></i> Mercado</button>
             <button class="btn-nav" id="btn-tab-financas" onclick="switchScreen('financas')"><i class="fa-solid fa-building-columns"></i> Finanças</button>
             <button class="btn-nav" id="btn-tab-classificacoes" onclick="switchScreen('classificacoes')"><i class="fa-solid fa-list-ol"></i> Tabela</button>
+            <button class="btn-nav" id="btn-tab-treinador" onclick="switchScreen('treinador')"><i class="fa-solid fa-user-tie"></i> Treinador</button>
             <button onclick="saveGame()" style="background-color: var(--info); color:#0b0e14; font-weight: bold;"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
         </div>
 
@@ -359,7 +379,7 @@
                     </div>
 
                     <div class="card">
-                        <h3>Lances em Tempo Real</h3>
+                        <h3>Transmissão da Partida</h3>
                         <div id="match-live-log" class="log-box" style="margin-top: 16px;">Aguardando o início da rodada...</div>
                     </div>
                 </div>
@@ -483,8 +503,8 @@
                     <div class="finance-item"><span>Dívida Ativa</span><span id="loan-debt-value" style="color: var(--danger); font-weight: bold;">R$ 0</span></div>
                     <div class="finance-item"><span>Limite de Crédito</span><span id="loan-limit-value" style="color: var(--info);">R$ 0</span></div>
                     <div style="display: flex; gap: 10px; margin-top: 12px;">
-                        <button onclick="takeLoan()" style="background-color: var(--warning); color: black; flex: 1;"><i class="fa-solid fa-hand-holding-dollar"></i> Pegar R$ 1.500.000</button>
-                        <button onclick="payLoan()" class="danger" style="flex: 1;"><i class="fa-solid fa-money-bill-wave"></i> Pagar R$ 1.500.000</button>
+                        <button id="btn-take-loan" onclick="takeLoan()" style="background-color: var(--warning); color: black; flex: 1;"><i class="fa-solid fa-hand-holding-dollar"></i> Pegar Empréstimo</button>
+                        <button onclick="payLoan()" class="danger" style="flex: 1;"><i class="fa-solid fa-money-bill-wave"></i> Pagar Parcela</button>
                     </div>
                 </div>
                 
@@ -509,19 +529,40 @@
                 </table>
             </div>
         </div>
+
+        <!-- TREINADOR -->
+        <div id="screen-treinador" class="screen">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Escritório do Treinador</h2>
+                    <button class="danger" onclick="resignFromClub()"><i class="fa-solid fa-door-open"></i> Demitir-se do Clube</button>
+                </div>
+                <div class="card" style="background: rgba(255,255,255,0.02); border-color: var(--border);">
+                    <h4>Carreira Administrativa</h4>
+                    <p style="margin-top: 10px; color: var(--text-muted);">Você está gerenciando o clube atual nesta temporada. Caso peça demissão, todo o progresso do campeonato atual será limpo e você retornará à tela de seleção de equipes.</p>
+                </div>
+                <h4 style="margin-top: 20px;">Estatísticas de Partidas</h4>
+                <div class="history-grid">
+                    <div class="history-card"><h4>Jogos</h4><p id="hist-matches">0</p></div>
+                    <div class="history-card"><h4>Vitórias</h4><p id="hist-wins" style="color: var(--primary);">0</p></div>
+                    <div class="history-card"><h4>Derrotas</h4><p id="hist-losses" style="color: var(--danger);">0</p></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
     let gameState = {
         userClub: "",
-        money: 12000000,
+        money: 0,
         debt: 0,
-        loanLimit: 6000000,
+        loanLimit: 0,
+        loanChunk: 2000000,
         week: 1,
         formation: "4-4-2",
         finances: { tickets: 0, sponsor: 0, wages: 0, spent: 0 },
-        financeHistory: [12000000],
+        financeHistory: [],
         weeksLabels: ["Início"],
         matchSimulatingActive: false,
         matchIntervalPaused: false,
@@ -529,15 +570,16 @@
         myGoals: 0,
         oppGoals: 0,
         timeline: [],
+        stats: { matches: 0, wins: 0, losses: 0 },
         clubs: [
-            { id: "cfc", name: "Coritiba", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 },
-            { id: "fla", name: "Flamengo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 85 },
-            { id: "pal", name: "Palmeiras", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 84 },
-            { id: "bot", name: "Botafogo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 82 },
-            { id: "sao", name: "São Paulo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 80 },
-            { id: "gremio", name: "Grêmio", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 78 },
-            { id: "cru", name: "Cruzeiro", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 },
-            { id: "vasco", name: "Vasco", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76 }
+            { id: "cfc", name: "Coritiba", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76, initBudget: 35000000, credit: 15000000 },
+            { id: "fla", name: "Flamengo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 85, initBudget: 150000000, credit: 80000000 },
+            { id: "pal", name: "Palmeiras", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 84, initBudget: 130000000, credit: 70000000 },
+            { id: "bot", name: "Botafogo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 82, initBudget: 95000000, credit: 50000000 },
+            { id: "sao", name: "São Paulo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 80, initBudget: 60000000, credit: 35000000 },
+            { id: "gremio", name: "Grêmio", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 78, initBudget: 50000000, credit: 30000000 },
+            { id: "cru", name: "Cruzeiro", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76, initBudget: 45000000, credit: 25000000 },
+            { id: "vasco", name: "Vasco", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76, initBudget: 40000000, credit: 20000000 }
         ],
         players: [],
         market: [],
@@ -581,7 +623,7 @@
     function saveGame() {
         if (!gameState.userClub) return;
         localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
-        alert("Jogo salvo com sucesso em seu navegador! 💾");
+        alert("Jogo salvo com sucesso! 💾");
     }
 
     function loadGame() {
@@ -602,20 +644,27 @@
             if (gameState.matchSimulatingActive) {
                 isMatchSimulating = true;
                 isIntervalPaused = gameState.matchIntervalPaused;
-                document.getElementById('match-live-log').innerHTML = `⏳ Recuperando partida pausada... Rodando minuto ${gameState.currentMinute}.<br>`;
+                document.getElementById('match-live-log').innerHTML = `<div class="match-event-row">⏳ Partida restaurada do minuto ${gameState.currentMinute}.</div>`;
                 if (!isIntervalPaused) {
                     runMatchLoop();
                 } else {
                     document.getElementById('btn-resume-match').style.display = 'block';
                 }
             }
-            alert("Jogo carregado e restaurado com sucesso! 📂");
+            alert("Jogo carregado! 📂");
         }
     }
 
     function checkExistingSave() {
         if (localStorage.getItem("grid_manager_save")) {
             document.getElementById("load-save-container").style.display = "block";
+        }
+    }
+
+    function resignFromClub() {
+        if (confirm("Tem certeza que deseja pedir demissão? Seu progresso atual será deletado.")) {
+            localStorage.removeItem("grid_manager_save");
+            window.location.reload();
         }
     }
 
@@ -664,6 +713,13 @@
         if (screenId === 'mercado') renderMarket();
         if (screenId === 'financas') { renderFinancas(); updateChart(); }
         if (screenId === 'classificacoes') updateTabela();
+        if (screenId === 'treinador') renderTreinadorStats();
+    }
+
+    function renderTreinadorStats() {
+        document.getElementById('hist-matches').innerText = gameState.stats.matches;
+        document.getElementById('hist-wins').innerText = gameState.stats.wins;
+        document.getElementById('hist-losses').innerText = gameState.stats.losses;
     }
 
     function initGame() {
@@ -671,7 +727,8 @@
         gameState.clubs.forEach(club => {
             selectHtml += `<div class="card" style="margin-bottom:0; padding:16px; text-align:center;">
                 <h4 style="font-weight:700;">${club.name}</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom:12px;">OVR ${club.power}</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom:4px;">OVR ${club.power}</p>
+                <p style="font-size: 0.75rem; color: var(--primary); margin-bottom:12px;">Caixa: ${formatMoney(club.initBudget)}</p>
                 <button onclick="selectClub('${club.id}')">Assumir</button>
             </div>`;
         });
@@ -683,6 +740,15 @@
 
     function selectClub(clubId) {
         gameState.userClub = clubId;
+        let activeClub = gameState.clubs.find(c => c.id === clubId);
+        
+        gameState.money = activeClub.initBudget;
+        gameState.loanLimit = activeClub.credit;
+        gameState.financeHistory = [gameState.money];
+        gameState.loanChunk = Math.floor(activeClub.credit / 4);
+
+        document.getElementById('btn-take-loan').innerHTML = `<i class="fa-solid fa-hand-holding-dollar"></i> Pegar ${formatMoney(gameState.loanChunk)}`;
+
         if (clubId === "cfc") {
             const baseSquad = [
                 { name: "Pedro Morisco", age: 21, pos: "GOL", ovr: 75, wage: 15000, status: "Titular", stamina: 100, val: 3200000, onSale: false },
@@ -702,9 +768,29 @@
                 { name: "Brandão", age: 19, pos: "ATA", ovr: 65, wage: 6000, status: "Reserva", stamina: 100, val: 950000, onSale: false }
             ];
             gameState.players = baseSquad.map((p, index) => ({ id: index + 100, ...p }));
+        } else {
+            const firstN = ["Ronaldo", "Marcos", "Alex", "Marcelo", "Juninho", "Alan", "Diego", "Erick"];
+            const lastN = ["Souza", "Pereira", "Teixeira", "Ribeiro", "Cardoso", "Barbosa"];
+            for (let i = 0; i < 16; i++) {
+                let ovr = Math.floor(Math.random() * 6) + (activeClub.power - 2);
+                let age = Math.floor(Math.random() * 12) + 20;
+                let val = Math.floor((ovr * ovr * 1200) * (28 / age));
+                gameState.players.push({
+                    id: Date.now() + i,
+                    name: firstN[Math.floor(Math.random() * firstN.length)] + " " + lastN[Math.floor(Math.random() * lastN.length)],
+                    age: age,
+                    pos: Object.keys(positionOrder)[Math.floor(Math.random() * 5)],
+                    ovr: ovr,
+                    wage: ovr * 280,
+                    status: i < 11 ? "Titular" : "Reserva",
+                    stamina: 100,
+                    val: val,
+                    onSale: false
+                });
+            }
         }
 
-        document.getElementById('user-club-name').innerText = gameState.clubs.find(c => c.id === clubId).name;
+        document.getElementById('user-club-name').innerText = activeClub.name;
         document.getElementById('screen-select').style.display = 'none';
         document.getElementById('main-interface').style.display = 'block';
         document.getElementById('top-bar').style.display = 'flex';
@@ -816,7 +902,7 @@
         card.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span>
-                <div><strong>${p.name}</strong><div style="font-size: 0.75rem; color: var(--text-muted);">${p.age} anos</div></div>
+                <div><strong>${p.name}</strong><div style="font-size: 0.75rem; color: var(--text-muted);">${p.age} anos | ${formatMoney(p.val)}</div></div>
             </div>
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="text-align: right;"><div style="font-weight: bold; color: var(--primary);">OVR ${p.ovr}</div></div>
@@ -931,7 +1017,7 @@
         gameState.myGoals = 0;
         gameState.oppGoals = 0;
 
-        document.getElementById('match-live-log').innerHTML = "🏁 Apito inicial! Começa o primeiro tempo...<br>";
+        document.getElementById('match-live-log').innerHTML = `<div class="match-event-row">🏁 O árbitro autoriza e a bola rola no primeiro tempo!</div>`;
         generateMatchScript(); 
         runMatchLoop();
     }
@@ -942,7 +1028,6 @@
             if (!isMatchSimulating || isIntervalPaused) { clearInterval(matchIntervalToken); return; }
             
             gameState.currentMinute++;
-            matchMinute = gameState.currentMinute;
 
             gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.16); });
 
@@ -952,8 +1037,9 @@
                 isIntervalPaused = true; 
                 gameState.matchIntervalPaused = true;
                 clearInterval(matchIntervalToken);
-                document.getElementById('match-live-log').innerHTML += `<br>⏱️ <strong>Intervalo: Você ${gameState.myGoals} x ${gameState.oppGoals} ${aiEngine.opponent.name}</strong><br>`;
+                document.getElementById('match-live-log').innerHTML += `<div class="match-event-row goal-event">☕ 45' - Fim do primeiro tempo! Intervalo de jogo. Placar: Você ${gameState.myGoals} x ${gameState.oppGoals} ${aiEngine.opponent.name}</div>`;
                 document.getElementById('btn-resume-match').style.display = 'block'; 
+                document.getElementById('match-live-log').scrollTop = document.getElementById('match-live-log').scrollHeight;
                 localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
                 return;
             }
@@ -972,23 +1058,39 @@
                 clearInterval(matchIntervalToken); 
                 renderMatchEventVisual(nextEvent); 
             }
-        }, 120);
+        }, 100);
     }
 
     function resumeMatchSimulation() { isIntervalPaused = false; gameState.matchIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
 
     function renderMatchEventVisual(nextEvent) {
         let logBox = document.getElementById('match-live-log');
+        let attackers = gameState.players.filter(p => p.status === "Titular" && (p.pos === "ATA" || p.pos === "MEI"));
+        if(attackers.length === 0) attackers = gameState.players.filter(p => p.status === "Titular");
+        let pName = attackers[Math.floor(Math.random() * attackers.length)].name;
+
         if (nextEvent.owner === "user") {
-            gameState.myGoals += nextEvent.isGoal ? 1 : 0;
-            logBox.innerHTML += nextEvent.isGoal ? `<div style="color:var(--primary); font-weight:bold;">⚽ GOOOL DO COXA! Você ${gameState.myGoals} x ${gameState.oppGoals}</div>` : `<div>❌ Chance perdida de gol para fora!</div>`;
+            if (nextEvent.isGoal) {
+                gameState.myGoals++;
+                logBox.innerHTML += `<div class="match-event-row goal-event"><i class="fa-solid fa-circle-check"></i> [${gameState.currentMinute}'] GOOOOL! ${pName} limpa a marcação e balança a rede! (Você ${gameState.myGoals} x ${gameState.oppGoals} ${aiEngine.opponent.name})</div>`;
+            } else {
+                logBox.innerHTML += `<div class="match-event-row user-event"><i class="fa-solid fa-angles-right"></i> [${gameState.currentMinute}'] Finalização de fora da área para fora! Passou raspando a trave.</div>`;
+            }
         } else {
-            gameState.oppGoals += nextEvent.isGoal ? 1 : 0;
-            logBox.innerHTML += nextEvent.isGoal ? `<div style="color:var(--danger); font-weight:bold;">⚽ Gol deles! Você ${gameState.myGoals} x ${gameState.oppGoals}</div>` : `<div>🧤 Defesaça espetacular de Pedro Morisco!</div>`;
+            if (nextEvent.isGoal) {
+                gameState.oppGoals++;
+                logBox.innerHTML += `<div class="match-event-row opp-event"><i class="fa-solid fa-circle-xmark"></i> [${gameState.currentMinute}'] GOL ADVERSÁRIO! O ${aiEngine.opponent.name} monta uma blitz e marca! (Você ${gameState.myGoals} x ${gameState.oppGoals})</div>`;
+            } else {
+                logBox.innerHTML += `<div class="match-event-row"><i class="fa-solid fa-handshake"></i> [${gameState.currentMinute}'] Ataque perigoso do rival, mas o sistema defensivo segura firme!</div>`;
+            }
         }
         logBox.scrollTop = logBox.scrollHeight;
-        isMatchSimulating = true; 
-        runMatchLoop();
+        
+        // Garante o prosseguimento contínuo do motor da IA
+        setTimeout(() => {
+            isMatchSimulating = true;
+            runMatchLoop();
+        }, 1400);
     }
 
     function prepareDashboard() {
@@ -999,7 +1101,7 @@
 
         let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
         aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
-        document.getElementById('next-match-info').innerText = `Próximo jogo vs ${aiEngine.opponent.name}`;
+        document.getElementById('next-match-info').innerText = `Próximo confronto vs ${aiEngine.opponent.name}`;
         document.getElementById('dash-formation-badge').innerText = gameState.formation;
         renderVisualField('dash-field-players');
     }
@@ -1022,21 +1124,9 @@
         });
     }
 
-    function generateLeagueSchedule(teamList) {
-        let list = [...teamList];
-        let numTeams = list.length;
-        let rounds = numTeams - 1;
-        let turnMatches = [];
-        for (let r = 0; r < rounds; r++) {
-            let roundFixtures = [];
-            for (let i = 0; i < numTeams / 2; i++) {
-                roundFixtures.push({ home: list[i].id, away: list[numTeams - 1 - i].id });
-            }
-            turnMatches.push(roundFixtures);
-            list.splice(1, 0, list.pop());
-        }
-        let returnMatches = turnMatches.map(round => round.map(m => ({ home: m.away, away: m.home })));
-        return [...turnMatches, ...returnMatches];
+    function updateTopBar() {
+        document.getElementById('user-money').innerText = formatMoney(gameState.money);
+        document.getElementById('current-week').innerText = gameState.week;
     }
 
     function changeFormation() { gameState.formation = document.getElementById('select-formation').value; if(document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas(); prepareDashboard(); }
@@ -1045,23 +1135,24 @@
     function simulateProposals() {
         gameState.players.filter(p => p.onSale).forEach(p => {
             if(Math.random() < 0.40 && !gameState.proposals.some(prop => prop.playerId === p.id)) {
-                gameState.proposals.push({ id: Date.now(), playerId: p.id, playerName: p.name, offer: Math.floor(p.val * 0.95), club: "Rival" });
+                let percent = (Math.random() * 0.3) + 0.9;
+                gameState.proposals.push({ id: Date.now(), playerId: p.id, playerName: p.name, offer: Math.floor(p.val * percent), club: "Outro Clube" });
             }
         });
     }
 
     function generateMarket() {
         gameState.market = [];
-        const firstNames = ["Lucas", "Renato", "Rodrigo", "Felipe", "Gabriel", "Matheus", "Thiago", "Gerson"];
-        const lastNames = ["Santos", "Silva", "Oliveira", "Souza", "Pereira", "Costa", "Mendes"];
+        const fNames = ["Renato", "Maurício", "Alisson", "Carlos", "Diego", "Wesley", "Gerson"];
+        const lNames = ["Silva", "Gomes", "Almeida", "Mendes", "Barbosa", "Nascimento"];
         const positions = ["GOL", "ZAG", "VOL", "MEI", "ATA"];
         
         for(let i=0; i<5; i++) {
-            let ovr = Math.floor(Math.random() * 12) + 70;
+            let ovr = Math.floor(Math.random() * 12) + 72;
             let age = Math.floor(Math.random() * 14) + 19;
             let pos = positions[Math.floor(Math.random() * positions.length)];
-            let name = firstNames[Math.floor(Math.random() * firstNames.length)] + " " + lastNames[Math.floor(Math.random() * lastNames.length)];
-            gameState.market.push({ id: Date.now() + i, name: name, age: age, pos: pos, ovr: ovr, val: Math.floor((ovr * ovr * 1100) * (28 / age)), wage: ovr * 280 });
+            let name = fNames[Math.floor(Math.random() * fNames.length)] + " " + lNames[Math.floor(Math.random() * lNames.length)];
+            gameState.market.push({ id: Date.now() + i, name: name, age: age, pos: pos, ovr: ovr, val: Math.floor((ovr * ovr * 1200) * (28 / age)), wage: ovr * 280 });
         }
     }
 
@@ -1081,7 +1172,7 @@
     function renderProposals() {
         const container = document.getElementById('proposals-list');
         if (!container) return;
-        if (gameState.proposals.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:0.9rem;'>Nenhuma proposta.</p>"; return; }
+        if (gameState.proposals.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:0.9rem;'>Nenhuma proposta ativa.</p>"; return; }
         container.innerHTML = `<div class="proposal-card"><div><strong>${gameState.proposals[0].playerName}</strong></div><button onclick="acceptProposal(${gameState.proposals[0].id})">Aceitar Proposta de ${formatMoney(gameState.proposals[0].offer)}</button></div>`;
     }
 
@@ -1097,17 +1188,27 @@
         document.getElementById('loan-limit-value').innerText = formatMoney(gameState.loanLimit);
     }
 
-    function takeLoan() { if (gameState.loanLimit <= 0) return; gameState.money += 1500000; gameState.debt += 1500000; gameState.loanLimit -= 1500000; renderFinancas(); updateTopBar(); }
-    function payLoan() { if (gameState.debt <= 0 || gameState.money < 1500000) return; gameState.money -= 1500000; gameState.debt -= 1500000; gameState.loanLimit += 1500000; renderFinancas(); updateTopBar(); }
+    function takeLoan() { 
+        if (gameState.loanLimit <= 0) return alert("Limite bancário estourado!"); 
+        gameState.money += gameState.loanChunk; gameState.debt += gameState.loanChunk; gameState.loanLimit -= gameState.loanChunk; 
+        renderFinancas(); updateTopBar(); 
+    }
+    
+    function payLoan() { 
+        if (gameState.debt <= 0) return alert("Seu clube não deve nada!");
+        if (gameState.money < gameState.loanChunk) return alert("Caixa insuficiente!"); 
+        gameState.money -= gameState.loanChunk; gameState.debt -= gameState.loanChunk; gameState.loanLimit += gameState.loanChunk; 
+        renderFinancas(); updateTopBar(); 
+    }
 
     function generateMatchScript() {
         let myPower = getStartingElevenPower(); let oppPower = aiEngine.opponent.power;
         let userChanceRatio = myPower / (myPower + oppPower);
         gameState.timeline = [
-            { minute: Math.floor(Math.random() * 15) + 5, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false },
-            { minute: Math.floor(Math.random() * 20) + 21, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.40, processed: false },
-            { minute: Math.floor(Math.random() * 20) + 50, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.45, processed: false },
-            { minute: Math.floor(Math.random() * 15) + 71, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.40, processed: false }
+            { minute: Math.floor(Math.random() * 12) + 6, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.42, processed: false },
+            { minute: Math.floor(Math.random() * 15) + 22, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.40, processed: false },
+            { minute: Math.floor(Math.random() * 15) + 52, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.42, processed: false },
+            { minute: Math.floor(Math.random() * 12) + 72, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.38, processed: false }
         ];
         gameState.timeline.sort((a,b) => a.minute - b.minute);
     }
@@ -1128,13 +1229,15 @@
         gameState.matchSimulatingActive = false;
         document.getElementById('mid-match-actions').style.display = 'none';
         btnPlay.style.display = 'block';
-        logBox.innerHTML += `<br><strong>🏁 Fim de Jogo! Placar final: Você ${myGoals} x ${oppGoals} ${aiEngine.opponent.name}</strong><br>`;
+        logBox.innerHTML += `<div class="match-event-row goal-event">🚨 90' - Fim de partida! Placar final: Você ${myGoals} x ${oppGoals} ${aiEngine.opponent.name}</div>`;
 
         let userClubObj = gameState.clubs.find(c => c.id === gameState.userClub);
         userClubObj.sg += (myGoals - oppGoals); aiEngine.opponent.sg += (oppGoals - myGoals);
-        if(myGoals > oppGoals) { userClubObj.pts += 3; userClubObj.v++; aiEngine.opponent.d++; } 
-        else if(myGoals === oppGoals) { userClubObj.pts += 1; userClubObj.e++; aiEngine.opponent.e++; } 
-        else { aiEngine.opponent.pts += 3; aiEngine.opponent.v++; userClubObj.d++; }
+        
+        gameState.stats.matches++;
+        if(myGoals > oppGoals) { userClubObj.pts += 3; userClubObj.v++; aiEngine.opponent.d++; gameState.stats.wins++; } 
+        else if(myGoals === oppGoals) { userClubObj.pts += 1; aiEngine.opponent.pts += 1; userClubObj.e++; aiEngine.opponent.e++; } 
+        else { aiEngine.opponent.pts += 3; aiEngine.opponent.v++; userClubObj.d++; gameState.stats.losses++; }
 
         currentRoundMatches.forEach(match => {
             if(match.home !== gameState.userClub && match.away !== gameState.userClub) {
@@ -1145,10 +1248,11 @@
             }
         });
 
-        let ticketRevenue = (myGoals * 100000) + 350000;
+        let ticketRevenue = (myGoals * 150000) + 750000;
         let wagesCost = gameState.players.reduce((acc, p) => acc + p.wage, 0);
-        gameState.money += (ticketRevenue + 150000) - wagesCost;
+        if(gameState.debt > 0) gameState.debt += Math.floor(gameState.debt * 0.05);
 
+        gameState.money += (ticketRevenue + 300000) - wagesCost;
         gameState.financeHistory.push(gameState.money);
         gameState.weeksLabels.push("R" + gameState.week);
 
@@ -1169,6 +1273,12 @@
         let tbody = "";
         gameState.clubs.forEach((c, idx) => { tbody += `<tr><td>${idx+1}</td><td><strong>${c.name}</strong></td><td>${c.pts}</td><td>${c.v}</td><td>${c.e}</td><td>${c.d}</td><td>${c.sg}</td></tr>`; });
         document.getElementById('table-classificacao').querySelector('tbody').innerHTML = tbody;
+    }
+
+    function getStartingElevenPower() {
+        let starters = gameState.players.filter(p => p.status === "Titular");
+        if(starters.length === 0) return 50;
+        return Math.floor(starters.reduce((acc, p) => acc + p.ovr, 0) / starters.length);
     }
 
     initGame();
