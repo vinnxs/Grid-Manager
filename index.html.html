@@ -19,64 +19,53 @@
 
 <div id="screen-select" class="screen active">
     <div class="card">
-        <h2>Central de Contratos</h2>
-        <p id="select-desc">Carregando...</p>
-        <div id="club-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;"></div>
+        <h2>Escolha seu clube</h2>
+        <div id="club-select-list"></div>
     </div>
 </div>
 
-<div id="screen-dashboard" class="screen">
-    <div class="card">
-        <h2 id="display-club-name">Time</h2>
-        <p id="display-info">...</p>
-        <button onclick="resignFromClub()" style="background:#ff5252; color:white;">Resignar do Cargo</button>
-    </div>
+<div id="main-interface" class="screen">
+    <h2 id="display-title">Dashboard</h2>
+    <button onclick="localStorage.clear(); location.reload()">Resetar Jogo</button>
 </div>
 
 <script>
-    // ESTADO DO JOGO
     let gameState = {
         userClub: "",
+        week: 1,
+        maxWeeks: 10, // Corrigido para 10 rodadas
         clubs: [
-            { id: "fla", name: "Flamengo", serie: "A", power: 85, initBudget: 150000000 },
-            { id: "cfc", name: "Coritiba", serie: "B", power: 74, initBudget: 35000000 }
-            // ... (Aqui entra a lista completa dos 30 times da pirâmide)
+            // Série A (6 times)
+            { id: "c1", name: "Time A1", serie: "A", power: 80 }, { id: "c2", name: "Time A2", serie: "A", power: 79 },
+            { id: "c3", name: "Time A3", serie: "A", power: 78 }, { id: "c4", name: "Time A4", serie: "A", power: 77 },
+            { id: "c5", name: "Time A5", serie: "A", power: 76 }, { id: "c6", name: "Time A6", serie: "A", power: 75 },
+            // Série B (6 times)
+            { id: "c7", name: "Time B1", serie: "B", power: 70 }, { id: "c8", name: "Time B2", serie: "B", power: 69 },
+            { id: "c9", name: "Time B3", serie: "B", power: 68 }, { id: "c10", name: "Time B4", serie: "B", power: 67 },
+            { id: "c11", name: "Time B5", serie: "B", power: 66 }, { id: "c12", name: "Time B6", serie: "B", power: 65 },
+            // Série C (6 times)
+            { id: "c13", name: "Time C1", serie: "C", power: 60 }, { id: "c14", name: "Time C2", serie: "C", power: 59 },
+            { id: "c15", name: "Time C3", serie: "C", power: 58 }, { id: "c16", name: "Time C4", serie: "C", power: 57 },
+            { id: "c17", name: "Time C5", serie: "C", power: 56 }, { id: "c18", name: "Time C6", serie: "C", power: 55 }
         ],
-        stats: { matches: 0, wins: 0, losses: 0 }
+        players: [], savedClubsSquads: {}, stats: { matches: 0, wins: 0, losses: 0 }
     };
 
     function initGame() {
-        try {
-            console.log("Iniciando motor...");
-            const list = document.getElementById('club-list');
-            list.innerHTML = "";
-            
-            gameState.clubs.forEach(club => {
-                let div = document.createElement('div');
-                div.className = "card";
-                div.innerHTML = `<h4>${club.name}</h4><p>Série ${club.serie}</p><button onclick="startCareer('${club.id}')">Assumir</button>`;
-                list.appendChild(div);
-            });
-            document.getElementById('select-desc').innerText = "Escolha sua equipe:";
-        } catch(e) {
-            console.error("Erro crítico:", e);
-            localStorage.clear();
-        }
+        const list = document.getElementById('club-select-list');
+        gameState.clubs.forEach(club => {
+            let div = document.createElement('div');
+            div.className = "card";
+            div.innerHTML = `<h4>${club.name}</h4><p>Série ${club.serie} | Força: ${club.power}</p><button onclick="startCareer('${club.id}')">Assumir</button>`;
+            list.appendChild(div);
+        });
     }
 
     function startCareer(clubId) {
         gameState.userClub = clubId;
         document.getElementById('screen-select').classList.remove('active');
-        document.getElementById('screen-dashboard').classList.add('active');
-        
-        let club = gameState.clubs.find(c => c.id === clubId);
-        document.getElementById('display-club-name').innerText = "Gerenciando: " + club.name;
-        document.getElementById('display-info').innerText = "Dashboard carregado. Motor de 30 times pronto.";
-    }
-
-    function resignFromClub() {
-        document.getElementById('screen-dashboard').classList.remove('active');
-        document.getElementById('screen-select').classList.add('active');
+        document.getElementById('main-interface').classList.add('active');
+        document.getElementById('display-title').innerText = "Gerenciando: " + gameState.clubs.find(c=>c.id==clubId).name;
     }
 
     window.onload = initGame;
