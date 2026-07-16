@@ -132,6 +132,13 @@
             margin-top: 12px;
         }
 
+        table#table-select-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
         th, td {
             padding: 10px 12px;
             text-align: left;
@@ -386,6 +393,7 @@
         </div>
     </header>
 
+    <!-- PROPOSTAS DE EMPREGO -->
     <div id="screen-select" class="screen active">
         <div class="card" style="text-align: center; padding: 40px 20px;">
             <h2 style="font-size: 1.8rem; margin-bottom: 8px;"><i class="fa-solid fa-briefcase"></i> Central de Contratos</h2>
@@ -399,6 +407,7 @@
         </div>
     </div>
 
+    <!-- PAINEL PRINCIPAL -->
     <div id="main-interface" style="display: none;">
         <div class="grid-menu">
             <button class="btn-nav active" id="btn-tab-dashboard" onclick="switchScreen('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
@@ -411,6 +420,7 @@
             <button onclick="saveGame()" style="background-color: var(--info); color:#0b0e14; font-weight: bold;"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
         </div>
 
+        <!-- DASHBOARD -->
         <div id="screen-dashboard" class="screen">
             <div class="flex-dashboard">
                 <div>
@@ -459,6 +469,7 @@
             </div>
         </div>
 
+        <!-- TÁTICAS -->
         <div id="screen-taticas" class="screen">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -496,6 +507,7 @@
             </div>
         </div>
 
+        <!-- ELENCO -->
         <div id="screen-elenco" class="screen">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <div>
@@ -529,6 +541,7 @@
             </div>
         </div>
 
+        <!-- MERCADO -->
         <div id="screen-mercado" class="screen">
             <div class="card">
                 <h3>Jogadores Disponíveis no Mercado</h3>
@@ -541,6 +554,7 @@
             </div>
         </div>
 
+        <!-- FINANÇAS -->
         <div id="screen-financas" class="screen">
             <div class="finance-grid">
                 <div class="card">
@@ -571,6 +585,7 @@
             </div>
         </div>
 
+        <!-- CLASSIFICAÇÃO -->
         <div id="screen-classificacoes" class="screen">
             <div class="card">
                 <h3 id="league-title-header">Campeonato Brasileiro</h3>
@@ -583,6 +598,7 @@
             </div>
         </div>
 
+        <!-- TREINADOR -->
         <div id="screen-treinador" class="screen">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -605,7 +621,6 @@
 </div>
 
 <script>
-    // EXPANSÃO MASSIVA: 10 TIMES POR DIVISÃO = 30 CLUBES EM SEGUNDO PLANO
     let gameState = {
         userClub: "",
         money: 0,
@@ -645,7 +660,7 @@
             { id: "cfc", name: "Coritiba", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 74, initBudget: 35000000, credit: 15000000, serie: "B" },
             { id: "int", name: "Internacional", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 74, initBudget: 34000000, credit: 14000000, serie: "B" },
             { id: "vitoria", name: "Vitória", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 73, initBudget: 30000000, credit: 12000000, serie: "B" },
-            { id: "cuiaba", name: "Cuiabá", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 72, initBudget: 26000000, credit: 10000000, serie: "B" },
+            { id: "cuiaba", name: "Cuiabá", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 26000000, credit: 10000000, serie: "B" },
             { id: "sport", name: "Sport", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 72, initBudget: 24000000, credit: 9000000, serie: "B" },
             { id: "goias", name: "Goiás", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 71, initBudget: 22000000, credit: 8000000, serie: "B" },
             { id: "ceara", name: "Ceará", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 71, initBudget: 20000000, credit: 8000000, serie: "B" },
@@ -698,6 +713,21 @@
     let isIntervalPaused = false;
     let aiEngine = { opponent: null };
 
+    function formatMoney(value) {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
+    }
+
+    function saveGame() {
+        if (!gameState.userClub) return;
+        gameState.savedClubsSquads[gameState.userClub] = {
+            players: gameState.players, money: gameState.money, debt: gameState.debt,
+            loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
+            financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
+        };
+        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+        alert("Jogo e carreira salvos com sucesso! 💾");
+    }
+
     function loadGame() {
         let savedData = localStorage.getItem("grid_manager_save");
         if (savedData) {
@@ -747,17 +777,6 @@
         if (localStorage.getItem("grid_manager_save")) {
             document.getElementById("load-save-container").style.display = "block";
         }
-    }
-
-    function saveGame() {
-        if (!gameState.userClub) return;
-        gameState.savedClubsSquads[gameState.userClub] = {
-            players: gameState.players, money: gameState.money, debt: gameState.debt,
-            loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
-            financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
-        };
-        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
-        alert("Jogo e carreira salvos com sucesso! 💾");
     }
 
     function resignFromClub() {
@@ -843,7 +862,6 @@
             });
         } else {
             let winRate = gameState.stats.wins / gameState.stats.matches;
-            let clubsSorted = [...gameState.clubs].sort((a,b) => b.power - a.power);
 
             if (winRate >= 0.55) {
                 proposals = gameState.clubs.filter(c => c.serie === "A").slice(0, 2);
@@ -1058,7 +1076,8 @@
             }
             if (gameState.currentMinute >= 90) {
                 clearInterval(matchIntervalToken);
-                finishMatchDay(gameState.myGoals, gameState.oppGoals, gameState.schedules[gameState.clubs.find(c => c.id === gameState.userClub).serie][gameState.week - 1], document.getElementById('match-live-log'), document.getElementById('btn-play'));
+                let currentRoundMatches = gameState.schedules[gameState.clubs.find(c => c.id === gameState.userClub).serie][gameState.week - 1];
+                finishMatchDay(gameState.myGoals, gameState.oppGoals, currentRoundMatches, document.getElementById('match-live-log'), document.getElementById('btn-play'));
                 return;
             }
             let nextEvent = gameState.timeline.find(e => e.minute === gameState.currentMinute && !e.processed);
@@ -1116,7 +1135,6 @@
         document.getElementById('current-week').innerText = gameState.week;
     }
 
-    // SIMULAÇÃO MASSIVA EM PARALELO DE 3 DIVISÕES (30 TIMES)
     function finishMatchDay(myGoals, oppGoals, currentRoundMatches, logBox, btnPlay) {
         isMatchSimulating = false; gameState.matchSimulatingActive = false;
         document.getElementById('mid-match-actions').style.display = 'none'; btnPlay.style.display = 'block'; document.getElementById('btn-auto-escalar-dash').style.display = 'block';
@@ -1126,10 +1144,9 @@
         activeClub.sg += (myGoals - oppGoals); aiEngine.opponent.sg += (oppGoals - myGoals);
         gameState.stats.matches++;
         if(myGoals > oppGoals) { activeClub.pts += 3; activeClub.v++; aiEngine.opponent.d++; gameState.stats.wins++; } 
-        else if(myGoals === oppGoals) { activeClub.pts += 1; aiEngine.opponent.pts += 1; activeClub.e++; aiEngine.opponent.e++; } 
+        else if(myGoals === oppGoals) { activeClub.pts += 1; activeClub.e++; aiEngine.opponent.e++; } 
         else { aiEngine.opponent.pts += 3; aiEngine.opponent.v++; activeClub.d++; gameState.stats.losses++; }
 
-        // Simula os outros 4 confrontos da sua própria divisão
         currentRoundMatches.forEach(match => {
             if(match.home !== gameState.userClub && match.away !== gameState.userClub) {
                 let c1 = gameState.clubs.find(c => c.id === match.home); let c2 = gameState.clubs.find(c => c.id === match.away);
@@ -1139,7 +1156,6 @@
             }
         });
 
-        // SIMULAÇÃO MASSIVA DE BACKGROUND: Roda as outras duas ligas inteiras de uma vez (10 jogos simultâneos)
         ["A", "B", "C"].forEach(tier => {
             if(tier !== activeClub.serie) {
                 let matches = gameState.schedules[tier][gameState.week - 1];
@@ -1152,7 +1168,6 @@
             }
         });
 
-        // Regeneração física robusta
         gameState.players.forEach(p => {
             if (p.status === "Reserva") p.stamina = Math.min(100, Math.floor(p.stamina + 35));
             else p.stamina = Math.min(100, Math.floor(p.stamina + 20));
@@ -1161,21 +1176,17 @@
         gameState.money += ((myGoals * 100000) + 600000) - gameState.players.reduce((acc, p) => acc + p.wage, 0);
         gameState.financeHistory.push(gameState.money); gameState.weeksLabels.push("R" + gameState.week);
 
-        // FECHAMENTO DO ANO: PROMOÇÃO E REBAIXAMENTO EXPANDIDO (TOP 2 SOBEM, BOTTOM 2 CAEM)
         if(gameState.week === gameState.maxWeeks) {
             ["A", "B", "C"].forEach(tier => {
                 let tierClubs = gameState.clubs.filter(c => c.serie === tier).sort((a,b) => b.pts - a.pts || b.sg - a.sg);
                 if(tier === "C") {
-                    // Top 2 sobem para a B
                     tierClubs[0].serie = "B"; tierClubs[1].serie = "B";
                 }
                 if(tier === "B") {
-                    // Top 2 sobem para a A, Bottom 2 caem para a C
                     tierClubs[0].serie = "A"; tierClubs[1].serie = "A";
                     tierClubs[tierClubs.length - 1].serie = "C"; tierClubs[tierClubs.length - 2].serie = "C";
                 }
                 if(tier === "A") {
-                    // Bottom 2 caem para a B
                     tierClubs[tierClubs.length - 1].serie = "B"; tierClubs[tierClubs.length - 2].serie = "B";
                     if(tierClubs[0].id === gameState.userClub) confetti({ particleCount: 150 });
                 }
@@ -1258,7 +1269,6 @@
         document.getElementById('table-mercado').querySelector('tbody').innerHTML = tbody;
     }
 
-    // RESTANTE DAS FUNÇÕES DE TRANSAÇÃO BANCÁRIA REESTRUTURADAS
     function buyPlayer(id) {
         let idx = gameState.market.findIndex(p => p.id === id); let p = gameState.market[idx];
         if (gameState.money < p.val) return alert("Caixa insuficiente!");
