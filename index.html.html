@@ -2,75 +2,1318 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Grid Manager - Full Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Manager - Mega Pyramid Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <style>
-        :root { --bg-main: #0b0e14; --bg-card: #121721; --primary: #00e676; --text: #fff; --border: #222b3c; }
-        body { background: var(--bg-main); color: var(--text); padding: 20px; font-family: sans-serif; }
-        .screen { display: none; } .screen.active { display: block; }
-        #club-select-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .card { background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
-        button { background: var(--primary); border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        :root {
+            --bg-main: #0b0e14;
+            --bg-card: #121721;
+            --bg-card-hover: #1a202c;
+            --primary: #00e676;
+            --primary-glow: rgba(0, 230, 118, 0.2);
+            --text: #f8f9fa;
+            --text-muted: #707e94;
+            --danger: #ff5252;
+            --warning: #ffd740;
+            --info: #40c4ff;
+            --border: #222b3c;
+            --field-green: #1b5e20;
+            --field-lines: rgba(255, 255, 255, 0.25);
+            --bg-log: #161d2a;
+            --bg-scoreboard: #070a0f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text);
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        h1 { 
+            font-size: 1.8rem; 
+            font-weight: 900; 
+            letter-spacing: -1px;
+        }
+        h1 span { color: var(--primary); }
+
+        .top-info {
+            display: flex;
+            gap: 20px;
+            background: var(--bg-card);
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: #0b0e14;
+            border: none;
+            padding: 11px 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        button:disabled { background-color: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
+        button.btn-nav { background-color: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
+        button.btn-nav:hover { color: var(--text); background: var(--bg-card-hover); }
+        button.btn-nav.active { background-color: var(--primary); border-color: var(--primary); color: #0b0e14; box-shadow: 0 4px 12px var(--primary-glow); }
+        button.danger { background-color: rgba(255, 82, 82, 0.1); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.2); }
+        button.danger:hover { background-color: var(--danger); color: white; }
+        button.secondary { background-color: #222b3c; color: var(--text); border: 1px solid var(--border); }
+        button.secondary:hover { background-color: var(--bg-card-hover); }
+
+        .card {
+            background-color: var(--bg-card);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .flex-dashboard {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        .tactic-layout-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        th { background-color: rgba(255,255,255,0.01); color: var(--text-muted); font-weight: 600; }
+
+        .live-scoreboard {
+            background: var(--bg-scoreboard);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .scoreboard-team {
+            font-size: 1.1rem;
+            font-weight: 800;
+            width: 35%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .scoreboard-team.team-home { text-align: right; }
+        .scoreboard-team.team-away { text-align: left; }
+
+        .scoreboard-center {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 30%;
+            justify-content: center;
+        }
+
+        .scoreboard-score {
+            background: #1a2232;
+            font-size: 1.8rem;
+            font-weight: 900;
+            padding: 4px 14px;
+            border-radius: 6px;
+            color: var(--primary);
+            min-width: 45px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .scoreboard-time {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--warning);
+            background: rgba(255, 215, 64, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .log-box {
+            background: var(--bg-log);
+            padding: 16px;
+            height: 190px;
+            overflow-y: auto;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .match-event-row {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.02);
+            border-left: 3px solid var(--text-muted);
+        }
+        .match-event-row.user-event { border-left-color: var(--info); }
+        .match-event-row.opp-event { border-left-color: var(--danger); }
+        .match-event-row.goal-event { border-left-color: var(--primary); background: rgba(0, 230, 118, 0.05); font-weight: 600; }
+
+        .football-field {
+            background-color: var(--field-green);
+            background-image: 
+                radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.15) 41%),
+                linear-gradient(to bottom, rgba(255,255,255,0.05) 50%, transparent 50%),
+                linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 80px, 40px 100%;
+            border: 3px solid var(--field-lines);
+            border-radius: 12px;
+            height: 480px;
+            position: relative;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.6);
+        }
+
+        .field-center-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--field-lines);
+        }
+
+        .field-center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 2px solid var(--field-lines);
+            border-radius: 50%;
+        }
+
+        .field-penalty-area-top {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 70px;
+            border: 2px solid var(--field-lines);
+            border-top: none;
+        }
+
+        .field-penalty-area-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 70px;
+            border: 2px solid var(--field-lines);
+            border-bottom: none;
+        }
+
+        .field-player-card {
+            position: absolute;
+            background: rgba(18, 23, 33, 0.92);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 6px;
+            width: 110px;
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+            transform: translate(-50%, -50%);
+            transition: all 0.15s ease;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .field-player-card.drag-over {
+            border-color: var(--primary);
+            background: rgba(0, 230, 118, 0.25);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .elenco-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .elenco-list-container {
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 400px;
+        }
+
+        .draggable-player-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .draggable-player-card:hover {
+            border-color: var(--text-muted);
+            background: var(--bg-card-hover);
+        }
+
+        .draggable-player-card.drag-over-player {
+            border-color: var(--primary);
+            background: rgba(0, 230, 118, 0.1);
+        }
+
+        .stamina-container {
+            width: 60px;
+            background: #222b3c;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 4px auto 0 auto;
+        }
+
+        .stamina-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 100%;
+        }
+
+        .badge { 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            background: rgba(255,255,255,0.05); 
+            text-transform: uppercase;
+        }
+        .badge.pos-gol { color: #ffeb3b; background: rgba(255, 235, 59, 0.1); }
+        .badge.pos-zag { color: #2196f3; background: rgba(33, 150, 243, 0.1); }
+        .badge.pos-vol { color: #00bcd4; background: rgba(0, 188, 212, 0.1); }
+        .badge.pos-mei { color: #e91e63; background: rgba(233, 30, 99, 0.1); }
+        .badge.pos-ata { color: #ff5722; background: rgba(255, 87, 34, 0.1); }
+        
+        .finance-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+        .finance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .proposal-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 16px; }
+        .history-card { background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center; }
+        .history-card h4 { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px; }
+        .history-card p { font-size: 1.2rem; font-weight: 700; }
     </style>
 </head>
 <body>
+
+<div class="container">
+    <header>
+        <h1>Grid <span>Manager</span></h1>
+        <div id="top-bar" class="top-info" style="display: none;">
+            <span><i class="fa-solid fa-stadium"></i> <span id="user-club-name" style="font-weight: 700;"></span></span>
+            <span><i class="fa-solid fa-wallet"></i> <span id="user-money" style="color: var(--primary); font-weight: 700;">-</span></span>
+            <span><i class="fa-solid fa-calendar-days"></i> Rodada: <span id="current-week" style="font-weight: 700;">1</span>/<span id="max-weeks">18</span></span>
+        </div>
+    </header>
+
     <div id="screen-select" class="screen active">
-        <div class="card">
-            <h2>Escolha seu Clube</h2>
-            <div id="club-select-list"></div>
+        <div class="card" style="text-align: center; padding: 40px 20px;">
+            <h2 style="font-size: 1.8rem; margin-bottom: 8px;"><i class="fa-solid fa-briefcase"></i> Central de Contratos</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;" id="select-screen-desc">Escolha uma proposta.</p>
+            
+            <div id="load-save-container" style="margin-bottom: 30px; display:none;">
+                <button onclick="loadGame()" style="background-color: var(--info); color:#0b0e14; padding:12px 24px;"><i class="fa-solid fa-folder-open"></i> Carregar Jogo Salvo</button>
+            </div>
+
+            <div id="club-select-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin: 0 auto;"></div>
         </div>
     </div>
-    <div id="main-interface" class="screen">
-        </div><script>
+
+    <div id="main-interface" style="display: none;">
+        <div class="grid-menu">
+            <button class="btn-nav active" id="btn-tab-dashboard" onclick="switchScreen('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+            <button class="btn-nav" id="btn-tab-taticas" onclick="switchScreen('taticas')"><i class="fa-solid fa-shield-halved"></i> Táticas</button>
+            <button class="btn-nav" id="btn-tab-elenco" onclick="switchScreen('elenco')"><i class="fa-solid fa-users"></i> Elenco</button>
+            <button class="btn-nav" id="btn-tab-mercado" onclick="switchScreen('mercado')"><i class="fa-solid fa-cart-shopping"></i> Mercado</button>
+            <button class="btn-nav" id="btn-tab-financas" onclick="switchScreen('financas')"><i class="fa-solid fa-building-columns"></i> Finanças</button>
+            <button class="btn-nav" id="btn-tab-classificacoes" onclick="switchScreen('classificacoes')"><i class="fa-solid fa-list-ol"></i> Tabela</button>
+            <button class="btn-nav" id="btn-tab-treinador" onclick="switchScreen('treinador')"><i class="fa-solid fa-user-tie"></i> Treinador</button>
+            <button onclick="saveGame()" style="background-color: var(--info); color:#0b0e14; font-weight: bold;"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+        </div>
+
+        <div id="screen-dashboard" class="screen">
+            <div class="flex-dashboard">
+                <div>
+                    <div class="live-scoreboard">
+                        <div class="scoreboard-team team-home" id="score-home-name">-</div>
+                        <div class="scoreboard-center">
+                            <div class="scoreboard-score" id="score-home-goals">0</div>
+                            <div class="scoreboard-time" id="score-match-time">00'</div>
+                            <div class="scoreboard-score" id="score-away-goals">0</div>
+                        </div>
+                        <div class="scoreboard-team team-away" id="score-away-name">-</div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 16px;">
+                        <div style="display: flex; gap: 10px; flex-direction: column;">
+                            <button id="btn-play" style="width: 100%; font-size: 1.1rem; padding: 14px;" onclick="simulateMatchDay()"><i class="fa-solid fa-play"></i> Iniciar Simulação</button>
+                            <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="display: block; width: 100%;"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
+                        </div>
+                        
+                        <div id="mid-match-actions" style="display: none; margin-top: 15px; flex-direction: column; gap: 10px;">
+                            <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%;"><i class="fa-solid fa-people-arrows"></i> Substituição Rápida</button>
+                            <button id="btn-resume-match" onclick="resumeMatchSimulation()" style="background-color: var(--primary); color: black; width: 100%;">Retomar Partida ➔</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Transmissão da Partida</h3>
+                        <div id="match-live-log" class="log-box" style="margin-top: 16px;">Aguardando o início da rodada...</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card" style="padding: 16px;">
+                        <h3 style="font-size: 1rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            Visualização do Time
+                            <span id="dash-formation-badge" class="badge">4-4-2</span>
+                        </h3>
+                        <div class="football-field">
+                            <div class="field-center-line"></div>
+                            <div class="field-center-circle"></div>
+                            <div class="field-penalty-area-top"></div>
+                            <div class="field-penalty-area-bottom"></div>
+                            <div id="dash-field-players"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-taticas" class="screen">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <h3>Esquema Tático Interativo</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Arraste um reserva para cima do titular no campo para substituir.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="secondary" onclick="executeAutoSelection()"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
+                        <select id="select-formation" onchange="changeFormation()" style="background:#222b3c; color:white; padding:10px; border:1px solid var(--border); border-radius:8px; font-weight: 600;">
+                            <option value="4-4-2">4-4-2</option>
+                            <option value="4-3-3">4-3-3</option>
+                            <option value="3-5-2">3-5-2</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="tactic-layout-grid">
+                    <div>
+                        <div class="football-field" id="tactic-football-field">
+                            <div class="field-center-line"></div>
+                            <div class="field-center-circle"></div>
+                            <div class="field-penalty-area-top"></div>
+                            <div class="field-penalty-area-bottom"></div>
+                            <div id="tactic-field-players"></div>
+                        </div>
+                        <button id="btn-save-taticas" onclick="saveTaticasAndReturn()" style="width: 100%; margin-top: 15px; background-color: var(--primary); color: #0b0e14; display: none;">Salvar Alterações e Voltar para o Jogo</button>
+                    </div>
+                    
+                    <div>
+                        <h4 style="margin-bottom: 10px; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Suplentes / Reservas</h4>
+                        <div id="tactic-bench-list" style="max-height: 480px; overflow-y: auto; padding-right: 5px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-elenco" class="screen">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div>
+                    <h2>Gerenciamento do Elenco</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Arraste um jogador por cima de outro para inverter os papéis.</p>
+                </div>
+                <button onclick="executeAutoSelection()" style="background-color: var(--primary); color: #0b0e14;"><i class="fa-solid fa-bolt"></i> Escalação Automática</button>
+            </div>
+
+            <div class="elenco-columns">
+                <div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <h3 style="color: var(--primary); margin-bottom: 12px; display: flex; justify-content: space-between;">
+                            Titulares Escalados <span id="titular-counter" style="font-size: 0.9rem; color: var(--text-muted);">0 / 11</span>
+                        </h3>
+                        <div id="elenco-titulares-list" class="elenco-list-container"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <h3 style="color: var(--warning); margin-bottom: 12px;">Reservas & Suplentes</h3>
+                        <div id="elenco-reservas-list" class="elenco-list-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 24px;">
+                <h3>Propostas de Compra Recebidas</h3>
+                <div id="proposals-list" class="proposals-container" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div id="screen-mercado" class="screen">
+            <div class="card">
+                <h3>Jogadores Disponíveis no Mercado</h3>
+                <table id="table-mercado">
+                    <thead>
+                        <tr><th>Nome</th><th>Idade</th><th>Posição</th><th>OVR</th><th>Preço</th><th>Salário</th><th>Ação</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="screen-financas" class="screen">
+            <div class="finance-grid">
+                <div class="card">
+                    <h3>Balanço do Clube</h3>
+                    <div style="margin-top: 15px;">
+                        <div class="finance-item"><span>Dinheiro em Caixa</span><span id="fin-box" style="font-weight:bold; color:var(--primary);">R$ 0</span></div>
+                        <div class="finance-item"><span>Bilheteria Acumulada</span><span id="fin-tickets" style="color:var(--primary);">R$ 0</span></div>
+                        <div class="finance-item"><span>Patrocínios</span><span id="fin-sponsor" style="color:var(--primary);">R$ 0</span></div>
+                        <div class="finance-item"><span>Despesa com Salários</span><span id="fin-wages" style="color:var(--danger);">- R$ 0</span></div>
+                        <div class="finance-item"><span>Gastos com Compras</span><span id="fin-spent" style="color:var(--danger);">- R$ 0</span></div>
+                    </div>
+                    
+                    <h3 style="margin-top:24px; margin-bottom:12px;">Sistema de Empréstimos</h3>
+                    <div class="finance-item"><span>Dívida Ativa</span><span id="loan-debt-value" style="color: var(--danger); font-weight: bold;">R$ 0</span></div>
+                    <div class="finance-item"><span>Limite de Crédito</span><span id="loan-limit-value" style="color: var(--info);">R$ 0</span></div>
+                    <div style="display: flex; gap: 10px; margin-top: 12px;">
+                        <button id="btn-take-loan" onclick="takeLoan()" style="background-color: var(--warning); color: black; flex: 1;"><i class="fa-solid fa-hand-holding-dollar"></i> Pegar Empréstimo</button>
+                        <button id="btn-pay-loan" onclick="payLoan()" class="danger" style="flex: 1;"><i class="fa-solid fa-money-bill-wave"></i> Pagar Parcela</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Histórico de Evolução do Caixa</h3>
+                    <div style="position: relative; height:320px; width:100%; margin-top: 15px;">
+                        <canvas id="financeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-classificacoes" class="screen">
+            <div class="card">
+                <h3 id="league-title-header">Campeonato Brasileiro</h3>
+                <table id="table-classificacao">
+                    <thead>
+                        <tr><th>Pos</th><th>Clube</th><th>Pts</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="screen-treinador" class="screen">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Escritório do Treinador</h2>
+                    <button class="danger" onclick="resignFromClub()"><i class="fa-solid fa-door-open"></i> Resignar do Cargo (Ver Propostas)</button>
+                </div>
+                <div class="card" style="background: rgba(255,255,255,0.02); border-color: var(--border);">
+                    <h4>Carreira Administrativa Contínua</h4>
+                    <p style="margin-top: 10px; color: var(--text-muted);">As tabelas expandidas das Séries A, B e C (30 times ativos) continuarão rodando em background no arquivo único.</p>
+                </div>
+                <h4 style="margin-top: 20px;">Estatísticas de Carreira Acumuladas</h4>
+                <div class="history-grid">
+                    <div class="history-card"><h4>Jogos</h4><p id="hist-matches">0</p></div>
+                    <div class="history-card"><h4>Vitórias</h4><p id="hist-wins" style="color: var(--primary);">0</p></div>
+                    <div class="history-card"><h4>Derrotas</h4><p id="hist-losses" style="color: var(--danger);">0</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
     let gameState = {
-        userClub: "", week: 1, maxWeeks: 10, formation: "4-4-2", stats: { matches: 0, wins: 0, losses: 0 },
+        userClub: "",
+        money: 0,
+        debt: 0,
+        loanLimit: 0,
+        loanChunk: 2000000,
+        week: 1,
+        maxWeeks: 18,
+        formation: "4-4-2",
+        finances: { tickets: 0, sponsor: 0, wages: 0, spent: 0 },
+        financeHistory: [],
+        weeksLabels: ["Início"],
+        matchSimulatingActive: false,
+        matchIntervalPaused: false,
+        currentMinute: 0,
+        myGoals: 0,
+        oppGoals: 0,
+        timeline: [],
+        stats: { matches: 0, wins: 0, losses: 0 },
         clubs: [
-            { id: "a1", name: "Time A1", serie: "A", power: 80, initBudget: 100000000 },
-            { id: "a2", name: "Time A2", serie: "A", power: 79, initBudget: 90000000 },
-            { id: "a3", name: "Time A3", serie: "A", power: 78, initBudget: 80000000 },
-            { id: "a4", name: "Time A4", serie: "A", power: 77, initBudget: 70000000 },
-            { id: "a5", name: "Time A5", serie: "A", power: 76, initBudget: 60000000 },
-            { id: "a6", name: "Time A6", serie: "A", power: 75, initBudget: 50000000 },
-            { id: "b1", name: "Time B1", serie: "B", power: 70, initBudget: 40000000 },
-            { id: "b2", name: "Time B2", serie: "B", power: 69, initBudget: 35000000 },
-            { id: "b3", name: "Time B3", serie: "B", power: 68, initBudget: 30000000 },
-            { id: "b4", name: "Time B4", serie: "B", power: 67, initBudget: 25000000 },
-            { id: "b5", name: "Time B5", serie: "B", power: 66, initBudget: 20000000 },
-            { id: "b6", name: "Time B6", serie: "B", power: 65, initBudget: 15000000 },
-            { id: "c1", name: "Time C1", serie: "C", power: 60, initBudget: 10000000 },
-            { id: "c2", name: "Time C2", serie: "C", power: 59, initBudget: 9000000 },
-            { id: "c3", name: "Time C3", serie: "C", power: 58, initBudget: 8000000 },
-            { id: "c4", name: "Time C4", serie: "C", power: 57, initBudget: 7000000 },
-            { id: "c5", name: "Time C5", serie: "C", power: 56, initBudget: 6000000 },
-            { id: "c6", name: "Time C6", serie: "C", power: 55, initBudget: 5000000 }
+            // SÉRIE A (10 TIMES)
+            { id: "fla", name: "Flamengo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 85, initBudget: 150000000, credit: 80000000, serie: "A" },
+            { id: "pal", name: "Palmeiras", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 84, initBudget: 130000000, credit: 70000000, serie: "A" },
+            { id: "bot", name: "Botafogo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 82, initBudget: 95000000, credit: 50000000, serie: "A" },
+            { id: "sao", name: "São Paulo", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 80, initBudget: 60000000, credit: 35000000, serie: "A" },
+            { id: "cam", name: "Atlético-MG", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 80, initBudget: 58000000, credit: 32000000, serie: "A" },
+            { id: "flu", name: "Fluminense", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 79, initBudget: 52000000, credit: 28000000, serie: "A" },
+            { id: "cor", name: "Corinthians", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 78, initBudget: 50000000, credit: 26000000, serie: "A" },
+            { id: "bah", name: "Bahia", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 78, initBudget: 48000000, credit: 24000000, serie: "A" },
+            { id: "cap", name: "Athletico-PR", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 77, initBudget: 44000000, credit: 22000000, serie: "A" },
+            { id: "for", name: "Fortaleza", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 77, initBudget: 42000000, credit: 20000000, serie: "A" },
+            
+            // SÉRIE B (10 TIMES)
+            { id: "gremio", name: "Grêmio", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76, initBudget: 40000000, credit: 18000000, serie: "B" },
+            { id: "cru", name: "Cruzeiro", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76, initBudget: 38000000, credit: 16000000, serie: "B" },
+            { id: "vasco", name: "Vasco", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 75, initBudget: 36000000, credit: 15000000, serie: "B" },
+            { id: "cfc", name: "Coritiba", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 74, initBudget: 35000000, credit: 15000000, serie: "B" },
+            { id: "int", name: "Internacional", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 74, initBudget: 34000000, credit: 14000000, serie: "B" },
+            { id: "vitoria", name: "Vitória", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 73, initBudget: 30000000, credit: 12000000, serie: "B" },
+            { id: "cuiaba", name: "Cuiabá", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 72, initBudget: 26000000, credit: 10000000, serie: "B" },
+            { id: "sport", name: "Sport", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 72, initBudget: 24000000, credit: 9000000, serie: "B" },
+            { id: "goias", name: "Goiás", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 71, initBudget: 22000000, credit: 8000000, serie: "B" },
+            { id: "ceara", name: "Ceará", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 71, initBudget: 20000000, credit: 8000000, serie: "B" },
+
+            // SÉRIE C (10 TIMES)
+            { id: "santos", name: "Santos", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 70, initBudget: 18000000, credit: 7000000, serie: "C" },
+            { id: "avaí", name: "Avaí", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 69, initBudget: 16000000, credit: 6000000, serie: "C" },
+            { id: "crb", name: "CRB", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 68, initBudget: 15000000, credit: 5500000, serie: "C" },
+            { id: "guarani", name: "Guarani", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 67, initBudget: 14000000, credit: 5000000, serie: "C" },
+            { id: "ponte", name: "Ponte Preta", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 67, initBudget: 13000000, credit: 5000000, serie: "C" },
+            { id: "mirassol", name: "Mirassol", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 66, initBudget: 12000000, credit: 4500000, serie: "C" },
+            { id: "novoriz", name: "Novorizontino", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 66, initBudget: 12000000, credit: 4000000, serie: "C" },
+            { id: "vila", name: "Vila Nova", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 65, initBudget: 10000000, credit: 4000000, serie: "C" },
+            { id: "operario", name: "Operário", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 64, initBudget: 9000000, credit: 3500000, serie: "C" },
+            { id: "brusque", name: "Brusque", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 63, initBudget: 8000000, credit: 3000000, serie: "C" }
         ],
-        players: []
+        players: [],
+        savedClubsSquads: {},
+        market: [],
+        proposals: [],
+        schedules: {}
     };
 
-    function initGame() {
-        const list = document.getElementById('club-select-list');
-        gameState.clubs.forEach(c => {
-            let div = document.createElement('div');
-            div.className = "card";
-            div.innerHTML = `<h4>${c.name}</h4><p>Série ${c.serie} | Força: ${c.power}</p><button onclick="startCareer('${c.id}')">Assumir</button>`;
-            list.appendChild(div);
+    const positionOrder = { "GOL": 1, "ZAG": 2, "VOL": 3, "MEI": 4, "ATA": 5 };
+
+    const positionsLayout = {
+        "4-4-2": [
+            {top: "88%", left: "50%", label: "GOL"},
+            {top: "70%", left: "18%", label: "LAD"}, {top: "73%", left: "38%", label: "ZAG"}, {top: "73%", left: "62%", label: "ZAG"}, {top: "70%", left: "82%", label: "LAE"},
+            {top: "48%", left: "18%", label: "VOL"}, {top: "52%", left: "38%", label: "MC"}, {top: "52%", left: "62%", label: "MC"}, {top: "48%", left: "82%", label: "MEI"},
+            {top: "24%", left: "33%", label: "ATA"}, {top: "24%", left: "67%", label: "ATA"}
+        ],
+        "4-3-3": [
+            {top: "88%", left: "50%", label: "GOL"},
+            {top: "70%", left: "18%", label: "LAD"}, {top: "73%", left: "38%", label: "ZAG"}, {top: "73%", left: "62%", label: "ZAG"}, {top: "70%", left: "82%", label: "LAE"},
+            {top: "52%", left: "28%", label: "VOL"}, {top: "55%", left: "50%", label: "MC"}, {top: "52%", left: "72%", label: "MEI"},
+            {top: "24%", left: "18%", label: "PE"}, {top: "20%", left: "50%", label: "CA"}, {top: "24%", left: "82%", label: "PD"}
+        ],
+        "3-5-2": [
+            {top: "88%", left: "50%", label: "GOL"},
+            {top: "72%", left: "28%", label: "ZAG"}, {top: "75%", left: "50%", label: "ZAG"}, {top: "72%", left: "72%", label: "ZAG"},
+            {top: "50%", left: "15%", label: "ALA"}, {top: "48%", left: "34%", label: "VOL"}, {top: "52%", left: "50%", label: "MC"}, {top: "48%", left: "66%", label: "MEI"}, {top: "50%", left: "85%", label: "ALA"},
+            {top: "24%", left: "33%", label: "ATA"}, {top: "24%", left: "67%", label: "ATA"}
+        ]
+    };
+
+    let matchIntervalToken = null;
+    let myChart = null;
+    let isMatchSimulating = false;
+    let isIntervalPaused = false;
+    let aiEngine = { opponent: null };
+
+    function formatMoney(value) {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
+    }
+
+    function saveGame() {
+        if (!gameState.userClub) return;
+        gameState.savedClubsSquads[gameState.userClub] = {
+            players: gameState.players, money: gameState.money, debt: gameState.debt,
+            loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
+            financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
+        };
+        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+        alert("Jogo e carreira salvos com sucesso! 💾");
+    }
+
+    function loadGame() {
+        let savedData = localStorage.getItem("grid_manager_save");
+        if (savedData) {
+            gameState = JSON.parse(savedData);
+            generateAllLeagueSchedules();
+            
+            if(gameState.savedClubsSquads[gameState.userClub]){
+                let clData = gameState.savedClubsSquads[gameState.userClub];
+                gameState.players = clData.players; gameState.money = clData.money; gameState.debt = clData.debt;
+                gameState.loanLimit = clData.loanLimit; gameState.loanChunk = clData.loanChunk;
+                gameState.financeHistory = clData.financeHistory; gameState.weeksLabels = clData.weeksLabels; gameState.finances = clData.finances;
+            }
+
+            document.getElementById('user-club-name').innerText = gameState.clubs.find(c => c.id === gameState.userClub).name;
+            document.getElementById('screen-select').style.display = 'none';
+            document.getElementById('main-interface').style.display = 'block';
+            document.getElementById('top-bar').style.display = 'flex';
+            
+            document.getElementById('btn-take-loan').innerHTML = `<i class="fa-solid fa-hand-holding-dollar"></i> Pegar ${formatMoney(gameState.loanChunk)}`;
+            document.getElementById('btn-pay-loan').innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> Pagar ${formatMoney(gameState.loanChunk)}`;
+            
+            updateTopBar(); switchScreen('dashboard'); initChart();
+
+            if (gameState.matchSimulatingActive) {
+                document.getElementById('btn-play').style.display = 'none';
+                document.getElementById('btn-auto-escalar-dash').style.display = 'none';
+                document.getElementById('mid-match-actions').style.display = 'flex';
+                
+                let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
+                document.getElementById('score-home-name').innerText = myClubName;
+                document.getElementById('score-away-name').innerText = gameState.opponentSaveName || "Rival";
+                document.getElementById('score-home-goals').innerText = gameState.myGoals;
+                document.getElementById('score-away-goals').innerText = gameState.oppGoals;
+                document.getElementById('score-match-time').innerText = gameState.currentMinute + "'";
+
+                if (!gameState.matchIntervalPaused) {
+                    isMatchSimulating = true; runMatchLoop();
+                } else {
+                    document.getElementById('btn-resume-match').style.display = 'block';
+                }
+            }
+            alert("Jogo carregado! 📂");
+        }
+    }
+
+    function checkExistingSave() {
+        if (localStorage.getItem("grid_manager_save")) {
+            document.getElementById("load-save-container").style.display = "block";
+        }
+    }
+
+    function resignFromClub() {
+        if (confirm("Deseja deixar o cargo? O campeonato de 30 times continuará em andamento.")) {
+            if(gameState.userClub) {
+                gameState.savedClubsSquads[gameState.userClub] = {
+                    players: gameState.players, money: gameState.money, debt: gameState.debt,
+                    loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
+                    financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
+                };
+            }
+            gameState.userClub = "";
+            localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+            
+            document.getElementById('main-interface').style.display = 'none';
+            document.getElementById('top-bar').style.display = 'none';
+            document.getElementById('screen-select').style.display = 'block';
+            initGame();
+        }
+    }
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && isMatchSimulating && !isIntervalPaused) {
+            isMatchSimulating = false;
+            gameState.matchSimulatingActive = true;
+            gameState.matchIntervalPaused = false;
+            localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+        }
+    });
+
+    function sortSquad(playersList) {
+        return [...playersList].sort((a, b) => {
+            if (positionOrder[a.pos] !== positionOrder[b.pos]) return positionOrder[a.pos] - positionOrder[b.pos];
+            return b.ovr - a.ovr;
         });
-    }function startCareer(clubId) {
+    }
+
+    function switchScreen(screenId) {
+        if (isMatchSimulating && screenId !== 'dashboard' && screenId !== 'taticas') {
+            isMatchSimulating = false; gameState.matchSimulatingActive = true;
+        }
+
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
+        
+        const targetScreen = document.getElementById(`screen-${screenId}`);
+        if(targetScreen) targetScreen.classList.add('active');
+        
+        const matchedBtn = document.getElementById(`btn-tab-${screenId}`);
+        if (matchedBtn) matchedBtn.classList.add('active');
+
+        if (screenId === 'dashboard') {
+            if (gameState.matchSimulatingActive && !gameState.matchIntervalPaused && !isMatchSimulating) {
+                isMatchSimulating = true; runMatchLoop();
+            }
+            prepareDashboard();
+        }
+        if (screenId === 'taticas') renderInteractiveTaticas();
+        if (screenId === 'elenco') renderElencoColumns();
+        if (screenId === 'mercado') renderMarket();
+        if (screenId === 'financas') { renderFinancas(); updateChart(); }
+        if (screenId === 'classificacoes') updateTabela();
+        if (screenId === 'treinador') renderTreinadorStats();
+    }
+
+    function renderTreinadorStats() {
+        document.getElementById('hist-matches').innerText = gameState.stats.matches;
+        document.getElementById('hist-wins').innerText = gameState.stats.wins;
+        document.getElementById('hist-losses').innerText = gameState.stats.losses;
+    }
+
+    function initGame() {
+        let selectHtml = "";
+        let proposals = [];
+
+        if (gameState.stats.matches === 0) {
+            document.getElementById('select-screen-desc').innerText = "Início de Carreira: Escolha livre em qualquer uma das séries expandidas (10 times por tier).";
+            ["A", "B", "C"].forEach(tier => {
+                selectHtml += `<div style="grid-column: 1/-1; margin-top:15px; border-bottom: 1px solid var(--border); padding-bottom:4px;"><h3 style="color:var(--info); font-weight:800;">Série ${tier}</h3></div>`;
+                gameState.clubs.filter(c => c.serie === tier).forEach(club => {
+                    selectHtml += createClubProposalCard(club);
+                });
+            });
+        } else {
+            let winRate = gameState.stats.wins / gameState.stats.matches;
+
+            if (winRate >= 0.55) {
+                proposals = gameState.clubs.filter(c => c.serie === "A").slice(0, 2);
+                document.getElementById('select-screen-desc').innerText = `Ofertas de Grife (${Math.floor(winRate*100)}% de Vitórias): Clubes da Série A querem sua assinatura.`;
+            } else if (winRate >= 0.35) {
+                proposals = gameState.clubs.filter(c => c.serie === "B").slice(0, 2);
+                document.getElementById('select-screen-desc').innerText = `Propostas de Acesso (${Math.floor(winRate*100)}% de Vitórias): Equipes tradicionais da Série B te procuraram.`;
+            } else {
+                proposals = gameState.clubs.filter(c => c.serie === "C").slice(0, 2);
+                document.getElementById('select-screen-desc').innerText = "Hora da reconstrução. Convites restritos à Série C nacional.";
+            }
+
+            proposals.forEach(club => { selectHtml += createClubProposalCard(club); });
+        }
+        document.getElementById('club-select-list').innerHTML = selectHtml;
+        generateMarket();
+        if(!gameState.schedules.A) generateAllLeagueSchedules();
+        checkExistingSave();
+    }
+
+    function createClubProposalCard(club) {
+        return `
+        <div class="card" style="margin-bottom:0; padding:16px; text-align:center; border: 1px solid var(--border);">
+            <h4 style="font-weight:800;">${club.name}</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom:8px;">Série ${club.serie} | Força: ${club.power}</p>
+            <p style="font-size: 0.8rem; color: var(--primary); font-weight:bold; margin-bottom:12px;">Caixa: ${formatMoney(club.initBudget)}</p>
+            <button onclick="selectClub('${club.id}')" style="width:100%; padding:8px;"><i class="fa-solid fa-file-contract"></i> Assinar</button>
+        </div>`;
+    }
+
+    function selectClub(clubId) {
         gameState.userClub = clubId;
-        document.getElementById('screen-select').classList.remove('active');
-        document.getElementById('main-interface').classList.add('active');
-        // Adicione aqui a lógica de inicialização do Dashboard original
+        
+        if (gameState.savedClubsSquads[clubId]) {
+            let clData = gameState.savedClubsSquads[clubId];
+            gameState.players = clData.players; gameState.money = clData.money; gameState.debt = clData.debt;
+            gameState.loanLimit = clData.loanLimit; gameState.loanChunk = clData.loanChunk;
+            gameState.financeHistory = clData.financeHistory; gameState.weeksLabels = clData.weeksLabels; gameState.finances = clData.finances;
+        } else {
+            let activeClub = gameState.clubs.find(c => c.id === clubId);
+            gameState.money = activeClub.initBudget; gameState.loanLimit = activeClub.credit;
+            gameState.financeHistory = [gameState.money]; gameState.loanChunk = Math.floor(activeClub.credit / 4);
+            gameState.finances = { tickets: 0, sponsor: 0, wages: 0, spent: 0 }; gameState.weeksLabels = ["Início"];
+
+            const firstN = ["Lucas", "Gabriel", "Rodrigo", "Felipe", "Bruno", "Alex", "Mateus", "Danilo", "Igor", "Caio"];
+            const lastN = ["Silva", "Santos", "Oliveira", "Souza", "Pereira", "Almeida", "Mendes", "Ribeiro"];
+            for (let i = 0; i < 16; i++) {
+                let ovr = Math.floor(Math.random() * 6) + (activeClub.power - 2);
+                let age = Math.floor(Math.random() * 15) + 18;
+                gameState.players.push({
+                    id: Date.now() + i + Math.floor(Math.random()*200),
+                    name: firstN[Math.floor(Math.random() * firstN.length)] + " " + lastN[Math.floor(Math.random() * lastN.length)],
+                    age: age,
+                    pos: Object.keys(positionOrder)[Math.floor(Math.random() * 5)],
+                    ovr: ovr,
+                    wage: ovr * 260,
+                    status: i < 11 ? "Titular" : "Reserva",
+                    stamina: 100,
+                    val: Math.floor((ovr * ovr * 1150) * (28 / age)),
+                    onSale: false
+                });
+            }
+        }
+        updateTopBar(); initChart(); switchScreen('dashboard');
     }
 
-    function playMatch() {
-        // Seu motor de jogo original entra aqui
-        alert("Simulando rodada " + gameState.week);
-        gameState.week++;
+    function initChart() {
+        const chartCanvas = document.getElementById('financeChart'); if (!chartCanvas) return;
+        const ctx = chartCanvas.getContext('2d'); if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: gameState.weeksLabels, datasets: [{ data: gameState.financeHistory, borderColor: '#00e676', backgroundColor: 'rgba(0, 230, 118, 0.05)', borderWidth: 3, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#222b3c' } }, y: { grid: { color: '#222b3c' } } } }
+        });
     }
 
-    window.onload = initGame;
+    function updateChart() { if (myChart) { myChart.data.labels = gameState.weeksLabels; myChart.data.datasets[0].data = gameState.financeHistory; myChart.update(); } }
+
+    function executeAutoSelection() {
+        let req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 2, ATA: 2 };
+        if (gameState.formation === "4-3-3") req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 1, ATA: 3 };
+        if (gameState.formation === "3-5-2") req = { GOL: 1, ZAG: 3, VOL: 3, MEI: 2, ATA: 2 };
+        gameState.players.forEach(p => p.status = "Reserva");
+        let sortedPool = [...gameState.players].sort((a, b) => b.ovr - a.ovr);
+        let selectedCount = 0;
+        for (let pos in req) {
+            let needed = req[pos]; let candidates = sortedPool.filter(p => p.pos === pos && p.status === "Reserva");
+            for (let i = 0; i < Math.min(needed, candidates.length); i++) {
+                let selectedPlayer = gameState.players.find(p => p.id === candidates[i].id);
+                if (selectedPlayer) { selectedPlayer.status = "Titular"; selectedCount++; }
+            }
+        }
+        if (selectedCount < 11) {
+            let generalCandidates = [...gameState.players].filter(p => p.status === "Reserva").sort((a, b) => b.ovr - a.ovr);
+            for (let i = 0; i < (11 - selectedCount); i++) {
+                if (generalCandidates[i]) { let selectedPlayer = gameState.players.find(p => p.id === generalCandidates[i].id); if (selectedPlayer) selectedPlayer.status = "Titular"; }
+            }
+        }
+        if (document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas();
+        if (document.getElementById('screen-elenco').classList.contains('active')) renderElencoColumns();
+        prepareDashboard();
+    }
+
+    function renderElencoColumns() {
+        const titularesContainer = document.getElementById('elenco-titulares-list'); const reservasContainer = document.getElementById('elenco-reservas-list');
+        if(!titularesContainer || !reservasContainer) return; titularesContainer.innerHTML = ""; reservasContainer.innerHTML = "";
+        let titulares = sortSquad(gameState.players.filter(p => p.status === "Titular")); let reservas = sortSquad(gameState.players.filter(p => p.status === "Reserva"));
+        document.getElementById('titular-counter').innerText = `${titulares.length} / 11`;
+        titulares.forEach(p => titularesContainer.appendChild(createElencoDraggableCard(p)));
+        reservas.forEach(p => reservasContainer.appendChild(createElencoDraggableCard(p)));
+        setupContainerDropEvents(titularesContainer, "Titular"); setupContainerDropEvents(reservasContainer, "Reserva");
+        renderProposals();
+    }
+
+    function createElencoDraggableCard(p) {
+        let card = document.createElement('div'); card.className = "draggable-player-card"; card.draggable = true; card.dataset.id = p.id;
+        let starBadge = p.age <= 23 ? ` <i class="fa-solid fa-star" style="color:var(--warning); font-size:0.72rem;"></i>` : "";
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span>
+                <div><strong>${p.name}${starBadge}</strong><div style="font-size: 0.75rem; color: var(--text-muted);">${p.age} anos | OVR ${p.ovr}</div></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="stamina-container"><div class="stamina-bar" style="width: ${p.stamina}%;"></div></div>
+                <button onclick="toggleSaleStatus(${p.id})" style="padding: 4px 8px; font-size: 0.75rem;" class="secondary">${p.onSale ? 'Venda On' : 'Vender'}</button>
+            </div>`;
+        card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', p.id); card.style.opacity = "0.4"; });
+        card.addEventListener('dragend', () => { card.style.opacity = "1"; document.querySelectorAll('.draggable-player-card').forEach(c => c.classList.remove('drag-over-player')); });
+        card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over-player'); });
+        card.addEventListener('dragleave', () => card.classList.remove('drag-over-player'));
+        card.addEventListener('drop', (e) => { e.preventDefault(); card.classList.remove('drag-over-player'); let draggedId = e.dataTransfer.getData('text/plain'); if (draggedId != p.id) executeListSwap(draggedId, p.id); });
+        return card;
+    }
+
+    function setupContainerDropEvents(container, targetStatus) {
+        container.addEventListener('dragover', (e) => e.preventDefault());
+        container.addEventListener('drop', (e) => {
+            e.preventDefault(); let draggedId = e.dataTransfer.getData('text/plain');
+            let player = gameState.players.find(p => p.id == draggedId);
+            if (player && player.status !== targetStatus) {
+                if (targetStatus === "Titular" && gameState.players.filter(p => p.status === "Titular").length >= 11) return alert("Limite atingido.");
+                player.status = targetStatus; renderElencoColumns(); prepareDashboard();
+            }
+        });
+    }
+
+    function executeListSwap(draggedId, targetId) {
+        let draggedPlayer = gameState.players.find(p => p.id == draggedId);
+        let targetPlayer = gameState.players.find(p => p.id == targetId);
+        if (draggedPlayer && targetPlayer) {
+            let tempStatus = draggedPlayer.status; draggedPlayer.status = targetPlayer.status; targetPlayer.status = tempStatus;
+            renderElencoColumns(); renderInteractiveTaticas(); prepareDashboard();
+        }
+    }
+
+    function renderInteractiveTaticas() {
+        const fieldContainer = document.getElementById('tactic-field-players'); const benchContainer = document.getElementById('tactic-bench-list');
+        if(!fieldContainer || !benchContainer) return; fieldContainer.innerHTML = ""; benchContainer.innerHTML = "";
+        let starters = sortSquad(gameState.players.filter(p => p.status === "Titular")); let bench = sortSquad(gameState.players.filter(p => p.status === "Reserva"));
+        let layout = positionsLayout[gameState.formation] || positionsLayout["4-4-2"];
+        starters.forEach((p, idx) => {
+            if (idx < 11) {
+                let coord = layout[idx]; let card = document.createElement('div'); card.className = "field-player-card"; card.style.top = coord.top; card.style.left = coord.left;
+                card.innerHTML = `<div>${p.name.split(' ')[0]}</div><div style="color:var(--primary); font-size:0.65rem;">OVR ${p.ovr} (${p.pos})</div>`;
+                card.addEventListener('dragover', (e) => e.preventDefault());
+                card.addEventListener('drop', (e) => { let draggedId = e.dataTransfer.getData('text/plain'); executeSubstitution(draggedId, p.id); });
+                fieldContainer.appendChild(card);
+            }
+        });
+        bench.forEach(p => {
+            let row = document.createElement('div'); row.className = "draggable-player-card"; row.draggable = true;
+            row.innerHTML = `<div><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span> <strong>${p.name}</strong></div><div>OVR ${p.ovr}</div>`;
+            row.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', p.id));
+            benchContainer.appendChild(row);
+        });
+    }
+
+    function executeSubstitution(reservaId, titularId) {
+        let reserva = gameState.players.find(p => p.id == reservaId); let titular = gameState.players.find(p => p.id == titularId);
+        if (reserva && titular) { reserva.status = "Titular"; titular.status = "Reserva"; renderInteractiveTaticas(); prepareDashboard(); }
+    }
+
+    function simulateMatchDay() {
+        let starters = gameState.players.filter(p => p.status === "Titular"); if (starters.length !== 11) return alert("Escale 11 titulares!");
+        isMatchSimulating = true; isIntervalPaused = false; gameState.matchSimulatingActive = true; gameState.matchIntervalPaused = false; gameState.currentMinute = 0; gameState.myGoals = 0; gameState.oppGoals = 0;
+        document.getElementById('btn-play').style.display = 'none'; document.getElementById('btn-auto-escalar-dash').style.display = 'none'; document.getElementById('mid-match-actions').style.display = 'flex'; document.getElementById('btn-resume-match').style.display = 'none';
+        
+        let activeClub = gameState.clubs.find(c => c.id === gameState.userClub);
+        let userMatch = gameState.schedules[activeClub.serie][gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
+        aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
+        
+        document.getElementById('score-home-name').innerText = activeClub.name;
+        document.getElementById('score-away-name').innerText = aiEngine.opponent.name;
+        document.getElementById('match-live-log').innerHTML = `<div class="match-event-row">🏁 Rodada iniciada na Série ${activeClub.serie}! Concentração total.</div>`;
+        generateMatchScript(); runMatchLoop();
+    }
+
+    function runMatchLoop() {
+        if (matchIntervalToken) clearInterval(matchIntervalToken);
+        matchIntervalToken = setInterval(() => {
+            if (!isMatchSimulating || isIntervalPaused) { clearInterval(matchIntervalToken); return; }
+            gameState.currentMinute++; document.getElementById('score-match-time').innerText = gameState.currentMinute + "'";
+            gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 15) p.stamina -= (Math.random() * 0.15); });
+
+            renderVisualField('dash-field-players');
+
+            if (gameState.currentMinute === 45) {
+                isIntervalPaused = true; gameState.matchIntervalPaused = true; isMatchSimulating = false; clearInterval(matchIntervalToken);
+                document.getElementById('score-match-time').innerText = "Intervalo";
+                document.getElementById('match-live-log').innerHTML += `<div class="match-event-row goal-event">☕ Intervalo de jogo. Ajuste suas posições táticas.</div>`;
+                document.getElementById('btn-resume-match').style.display = 'block'; return;
+            }
+            if (gameState.currentMinute >= 90) {
+                clearInterval(matchIntervalToken);
+                let currentRoundMatches = gameState.schedules[gameState.clubs.find(c => c.id === gameState.userClub).serie][gameState.week - 1];
+                finishMatchDay(gameState.myGoals, gameState.oppGoals, currentRoundMatches, document.getElementById('match-live-log'), document.getElementById('btn-play'));
+                return;
+            }
+            let nextEvent = gameState.timeline.find(e => e.minute === gameState.currentMinute && !e.processed);
+            if (nextEvent) { nextEvent.processed = true; isMatchSimulating = false; clearInterval(matchIntervalToken); renderMatchEventVisual(nextEvent); }
+        }, 150);
+    }
+
+    function resumeMatchSimulation() { isIntervalPaused = false; gameState.matchIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
+
+    function renderMatchEventVisual(nextEvent) {
+        let logBox = document.getElementById('match-live-log');
+        if (nextEvent.owner === "user") {
+            if (nextEvent.isGoal) { gameState.myGoals++; document.getElementById('score-home-goals').innerText = gameState.myGoals; logBox.innerHTML += `<div class="match-event-row goal-event">⚽ GOOOL SEU! Chute cruzado balançando as redes!</div>`; }
+            else { logBox.innerHTML += `<div class="match-event-row user-event">❌ Chance na pequena área para fora!</div>`; }
+        } else {
+            if (nextEvent.isGoal) { gameState.oppGoals++; document.getElementById('score-away-goals').innerText = gameState.oppGoals; logBox.innerHTML += `<div class="match-event-row opp-event">⚽ GOL DELES! O ataque rival aproveita a sobra e marca.</div>`; }
+            else { logBox.innerHTML += `<div class="match-event-row">🧤 Intervenção perfeita da defesa contendo o perigo.</div>`; }
+        }
+        logBox.scrollTop = logBox.scrollHeight;
+        setTimeout(() => { if (gameState.matchSimulatingActive && !gameState.matchIntervalPaused) { isMatchSimulating = true; runMatchLoop(); } }, 1300);
+    }
+
+    function prepareDashboard() {
+        if (!gameState.userClub || gameState.week > gameState.maxWeeks) return;
+        let activeClub = gameState.clubs.find(c => c.id === gameState.userClub);
+        document.getElementById('btn-play').style.display = gameState.matchSimulatingActive ? 'none' : 'block';
+        document.getElementById('btn-auto-escalar-dash').style.display = gameState.matchSimulatingActive ? 'none' : 'block';
+        document.getElementById('mid-match-actions').style.display = gameState.matchSimulatingActive ? 'flex' : 'none';
+        
+        if (!gameState.matchSimulatingActive) {
+            let userMatch = gameState.schedules[activeClub.serie][gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
+            aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
+            document.getElementById('score-home-name').innerText = activeClub.name;
+            document.getElementById('score-away-name').innerText = aiEngine.opponent.name;
+            document.getElementById('score-home-goals').innerText = "0"; document.getElementById('score-away-goals').innerText = "0"; document.getElementById('score-match-time').innerText = "00'";
+            document.getElementById('next-match-info').innerText = `Série ${activeClub.serie} - Próximo jogo vs ${aiEngine.opponent.name}`;
+        }
+        document.getElementById('dash-formation-badge').innerText = gameState.formation;
+        renderVisualField('dash-field-players');
+    }
+
+    function renderVisualField(containerId) {
+        const container = document.getElementById(containerId); if(!container) return; container.innerHTML = "";
+        let starters = sortSquad(gameState.players.filter(p => p.status === "Titular")); let layout = positionsLayout[gameState.formation] || positionsLayout["4-4-2"];
+        starters.forEach((p, idx) => {
+            if (idx < 11) {
+                let coord = layout[idx];
+                container.innerHTML += `<div class="field-player-card" style="top: ${coord.top}; left: ${coord.left};"><div>${p.name.split(' ')[0]}</div><div style="color:var(--primary); font-size:0.65rem;">${p.pos}</div></div>`;
+            }
+        });
+    }
+
+    function updateTopBar() {
+        document.getElementById('user-money').innerText = formatMoney(gameState.money);
+        document.getElementById('current-week').innerText = gameState.week;
+    }
+
+    function finishMatchDay(myGoals, oppGoals, currentRoundMatches, logBox, btnPlay) {
+        isMatchSimulating = false; gameState.matchSimulatingActive = false;
+        document.getElementById('mid-match-actions').style.display = 'none'; btnPlay.style.display = 'block'; document.getElementById('btn-auto-escalar-dash').style.display = 'block';
+        document.getElementById('score-match-time').innerText = "Fim";
+
+        let activeClub = gameState.clubs.find(c => c.id === gameState.userClub);
+        activeClub.sg += (myGoals - oppGoals); aiEngine.opponent.sg += (oppGoals - myGoals);
+        gameState.stats.matches++;
+        if(myGoals > oppGoals) { activeClub.pts += 3; activeClub.v++; aiEngine.opponent.d++; gameState.stats.wins++; } 
+        else if(myGoals === oppGoals) { activeClub.pts += 1; aiEngine.opponent.pts += 1; activeClub.e++; aiEngine.opponent.e++; } 
+        else { aiEngine.opponent.pts += 3; aiEngine.opponent.v++; activeClub.d++; gameState.stats.losses++; }
+
+        currentRoundMatches.forEach(match => {
+            if(match.home !== gameState.userClub && match.away !== gameState.userClub) {
+                let c1 = gameState.clubs.find(c => c.id === match.home); let c2 = gameState.clubs.find(c => c.id === match.away);
+                let g1 = Math.floor(Math.random() * 3), g2 = Math.floor(Math.random() * 3);
+                c1.sg += (g1 - g2); c2.sg += (g2 - g1);
+                if(g1 > g2) { c1.pts += 3; c1.v++; c2.d++; } else if(g1 === g2) { c1.pts += 1; c2.pts += 1; c1.e++; c2.e++; } else { c2.pts += 3; c2.v++; c1.d++; }
+            }
+        });
+
+        ["A", "B", "C"].forEach(tier => {
+            if(tier !== activeClub.serie) {
+                let matches = gameState.schedules[tier][gameState.week - 1];
+                matches.forEach(match => {
+                    let c1 = gameState.clubs.find(c => c.id === match.home); let c2 = gameState.clubs.find(c => c.id === match.away);
+                    let g1 = Math.floor(Math.random() * 3), g2 = Math.floor(Math.random() * 3);
+                    c1.sg += (g1 - g2); c2.sg += (g2 - g1);
+                    if(g1 > g2) { c1.pts += 3; c1.v++; c2.d++; } else if(g1 === g2) { c1.pts += 1; c2.pts += 1; c1.e++; c2.e++; } else { c2.pts += 3; c2.v++; c1.d++; }
+                });
+            }
+        });
+
+        gameState.players.forEach(p => {
+            if (p.status === "Reserva") p.stamina = Math.min(100, Math.floor(p.stamina + 35));
+            else p.stamina = Math.min(100, Math.floor(p.stamina + 20));
+        });
+
+        gameState.money += ((myGoals * 100000) + 600000) - gameState.players.reduce((acc, p) => acc + p.wage, 0);
+        gameState.financeHistory.push(gameState.money); gameState.weeksLabels.push("R" + gameState.week);
+
+        if(gameState.week === gameState.maxWeeks) {
+            ["A", "B", "C"].forEach(tier => {
+                let tierClubs = gameState.clubs.filter(c => c.serie === tier).sort((a,b) => b.pts - a.pts || b.sg - a.sg);
+                if(tier === "C") {
+                    tierClubs[0].serie = "B"; tierClubs[1].serie = "B";
+                }
+                if(tier === "B") {
+                    tierClubs[0].serie = "A"; tierClubs[1].serie = "A";
+                    tierClubs[tierClubs.length - 1].serie = "C"; tierClubs[tierClubs.length - 2].serie = "C";
+                }
+                if(tier === "A") {
+                    tierClubs[tierClubs.length - 1].serie = "B"; tierClubs[tierClubs.length - 2].serie = "B";
+                    if(tierClubs[0].id === gameState.userClub) confetti({ particleCount: 150 });
+                }
+            });
+
+            gameState.players.forEach(p => {
+                if (p.age <= 23) { p.ovr += Math.floor(Math.random() * 2) + 1; p.val = Math.floor(p.val * 1.2); }
+                p.age++;
+            });
+
+            alert("Campeonatos Encerrados! Subidas e descidas processadas em todas as séries.");
+            gameState.week = 1;
+            gameState.clubs.forEach(c => { c.pts = 0; c.v = 0; c.e = 0; c.d = 0; c.sg = 0; });
+            resignFromClub(); return;
+        } else {
+            gameState.week++;
+        }
+
+        generateMarket(); simulateProposals(); saveHistoryStateSnapshot(); updateTopBar(); prepareDashboard();
+    }
+
+    function saveHistoryStateSnapshot() {
+        if(gameState.userClub) {
+            gameState.savedClubsSquads[gameState.userClub] = {
+                players: gameState.players, money: gameState.money, debt: gameState.debt,
+                loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
+                financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
+            };
+        }
+        localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+    }
+
+    function generateLeagueSchedule(teamList) {
+        let list = [...teamList]; let numTeams = list.length; let rounds = numTeams - 1; let turnMatches = [];
+        for (let r = 0; r < rounds; r++) {
+            let roundFixtures = [];
+            for (let i = 0; i < numTeams / 2; i++) { roundFixtures.push({ home: list[i].id, away: list[numTeams - 1 - i].id }); }
+            turnMatches.push(roundFixtures); list.splice(1, 0, list.pop());
+        }
+        let returnMatches = turnMatches.map(round => round.map(m => ({ home: m.away, away: m.home })));
+        return [...turnMatches, ...returnMatches];
+    }
+
+    function generateAllLeagueSchedules() {
+        gameState.schedules = {
+            A: generateLeagueSchedule(gameState.clubs.filter(c => c.serie === "A")),
+            B: generateLeagueSchedule(gameState.clubs.filter(c => c.serie === "B")),
+            C: generateLeagueSchedule(gameState.clubs.filter(c => c.serie === "C"))
+        };
+    }
+
+    function changeFormation() { gameState.formation = document.getElementById('select-formation').value; if(document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas(); prepareDashboard(); }
+    function toggleSaleStatus(id) { let p = gameState.players.find(pl => pl.id === id); p.onSale = !p.onSale; renderElencoColumns(); }
+
+    function simulateProposals() {
+        gameState.players.filter(p => p.onSale).forEach(p => {
+            if(Math.random() < 0.40 && !gameState.proposals.some(prop => prop.playerId === p.id)) {
+                let percent = (Math.random() * 0.3) + 0.9;
+                gameState.proposals.push({ id: Date.now(), playerId: p.id, playerName: p.name, offer: Math.floor(p.val * percent), club: "Outro Clube" });
+            }
+        });
+    }
+
+    function generateMarket() {
+        gameState.market = [];
+        const fNames = ["Renato", "Maurício", "Alisson", "Carlos", "Diego", "Wesley", "Gerson"];
+        const lNames = ["Silva", "Gomes", "Almeida", "Mendes", "Barbosa", "Nascimento"];
+        const positions = ["GOL", "ZAG", "VOL", "MEI", "ATA"];
+        for(let i=0; i<5; i++) {
+            let ovr = Math.floor(Math.random() * 12) + 72; let age = Math.floor(Math.random() * 14) + 19;
+            let pos = positions[Math.floor(Math.random() * positions.length)];
+            let name = fNames[Math.floor(Math.random() * fNames.length)] + " " + lNames[Math.floor(Math.random() * lNames.length)];
+            gameState.market.push({ id: Date.now() + i, name: name, age: age, pos: pos, ovr: ovr, val: Math.floor((ovr * ovr * 1200) * (28 / age)), wage: ovr * 280 });
+        }
+    }
+
+    function renderMarket() {
+        let tbody = "";
+        gameState.market.forEach(p => { tbody += `<tr><td>${p.name}</td><td>${p.age} anos</td><td><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span></td><td><strong>${p.ovr}</strong></td><td>${formatMoney(p.val)}</td><td>${formatMoney(p.wage)}</td><td><button onclick="buyPlayer(${p.id})">Comprar</button></td></tr>`; });
+        document.getElementById('table-mercado').querySelector('tbody').innerHTML = tbody;
+    }
+
+    function buyPlayer(id) {
+        let idx = gameState.market.findIndex(p => p.id === id); let p = gameState.market[idx];
+        if (gameState.money < p.val) return alert("Caixa insuficiente!");
+        gameState.money -= p.val; gameState.players.push({...p, status:"Reserva", stamina:100});
+        gameState.market.splice(idx, 1); updateTopBar(); renderMarket();
+    }
+
+    function renderProposals() {
+        const container = document.getElementById('proposals-list'); if (!container) return;
+        if (gameState.proposals.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:0.9rem;'>Nenhuma proposta ativa.</p>"; return; }
+        container.innerHTML = `<div class="proposal-card"><div><strong>${gameState.proposals[0].playerName}</strong></div><button onclick="acceptProposal(${gameState.proposals[0].id})">Aceitar Proposta de ${formatMoney(gameState.proposals[0].offer)}</button></div>`;
+    }
+
+    function acceptProposal(id) {
+        let idx = gameState.proposals.findIndex(p => p.id === id); let prop = gameState.proposals[idx];
+        gameState.players = gameState.players.filter(pl => pl.id !== prop.playerId); gameState.money += prop.offer;
+        gameState.proposals.splice(idx, 1); updateTopBar(); renderElencoColumns();
+    }
+
+    function renderFinancas() {
+        document.getElementById('fin-box').innerText = formatMoney(gameState.money);
+        document.getElementById('loan-debt-value').innerText = formatMoney(gameState.debt);
+        document.getElementById('loan-limit-value').innerText = formatMoney(gameState.loanLimit);
+    }
+
+    function takeLoan() { if (gameState.loanLimit <= 0) return alert("Limite estourado!"); gameState.money += gameState.loanChunk; gameState.debt += gameState.loanChunk; gameState.loanLimit -= gameState.loanChunk; renderFinancas(); updateTopBar(); }
+    function payLoan() { if (gameState.debt <= 0) return alert("Sem dívidas!"); if (gameState.money < gameState.loanChunk) return alert("Caixa insuficiente!"); gameState.money -= gameState.loanChunk; gameState.debt -= gameState.loanChunk; gameState.loanLimit += gameState.loanChunk; renderFinancas(); updateTopBar(); }
+
+    function generateMatchScript() {
+        let myPower = getStartingElevenPower(); let oppPower = aiEngine.opponent.power;
+        let userChanceRatio = myPower / (myPower + oppPower);
+        gameState.timeline = [
+            { minute: Math.floor(Math.random() * 12) + 6, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.42, processed: false },
+            { minute: Math.floor(Math.random() * 15) + 22, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.40, processed: false },
+            { minute: Math.floor(Math.random() * 15) + 52, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.42, processed: false },
+            { minute: Math.floor(Math.random() * 12) + 72, owner: Math.random() < userChanceRatio ? "user" : "opp", isGoal: Math.random() < 0.38, processed: false }
+        ];
+        gameState.timeline.sort((a,b) => a.minute - b.minute);
+    }
+
+    function recalculateMatchScript() {
+        let myPower = getStartingElevenPower(); let oppPower = aiEngine.opponent.power;
+        let userChanceRatio = myPower / (myPower + oppPower);
+        gameState.timeline.forEach(event => {
+            if (!event.processed) {
+                event.owner = Math.random() < userChanceRatio ? "user" : "opp";
+                event.isGoal = Math.random() < (event.owner === "user" ? (0.28 + (myPower - oppPower) * 0.01) : (0.28 + (oppPower - myPower) * 0.01));
+            }
+        });
+    }
+
+    function updateTabela() {
+        let activeClub = gameState.clubs.find(c => c.id === gameState.userClub);
+        document.getElementById('league-title-header').innerText = `Campeonato Brasileiro - Série ${activeClub.serie}`;
+        let divClubs = gameState.clubs.filter(c => c.serie === activeClub.serie).sort((a,b) => b.pts - a.pts || b.sg - a.sg);
+        let tbody = "";
+        divClubs.forEach((c, idx) => { tbody += `<tr style="${c.id === gameState.userClub ? 'background:rgba(0,230,118,0.08); font-weight:600;':''}"><td>${idx+1}</td><td><strong>${c.name}</strong></td><td>${c.pts}</td><td>${c.v}</td><td>${c.e}</td><td>${c.d}</td><td>${c.sg}</td></tr>`; });
+        document.getElementById('table-classificacao').querySelector('tbody').innerHTML = tbody;
+    }
+
+    initGame();
 </script>
 </body>
 </html>
