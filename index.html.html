@@ -24,6 +24,7 @@
             --field-green: #1b5e20;
             --field-lines: rgba(255, 255, 255, 0.25);
             --bg-log: #161d2a;
+            --bg-scoreboard: #070a0f;
         }
 
         * {
@@ -140,11 +141,65 @@
 
         th { background-color: rgba(255,255,255,0.01); color: var(--text-muted); font-weight: 600; }
 
-        /* NOVA TRANSMISSÃO DE LANCES MODERNA (PAINEL DARK PREMIUM) */
+        /* PLACAR ELETRÔNICO DO MATCHDAY */
+        .live-scoreboard {
+            background: var(--bg-scoreboard);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .scoreboard-team {
+            font-size: 1.1rem;
+            font-weight: 800;
+            width: 35%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .scoreboard-team.team-home { text-align: right; }
+        .scoreboard-team.team-away { text-align: left; }
+
+        .scoreboard-center {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 30%;
+            justify-content: center;
+        }
+
+        .scoreboard-score {
+            background: #1a2232;
+            font-size: 1.8rem;
+            font-weight: 900;
+            padding: 4px 14px;
+            border-radius: 6px;
+            color: var(--primary);
+            min-width: 45px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .scoreboard-time {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--warning);
+            background: rgba(255, 215, 64, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
+            font-family: monospace;
+        }
+
         .log-box {
             background: var(--bg-log);
             padding: 16px;
-            height: 270px;
+            height: 190px;
             overflow-y: auto;
             border-radius: 10px;
             font-size: 0.9rem;
@@ -363,18 +418,26 @@
         <div id="screen-dashboard" class="screen">
             <div class="flex-dashboard">
                 <div>
-                    <div class="card">
-                        <h3 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 8px;">Próximo Confronto</h3>
-                        <p id="next-match-info" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;"></p>
-                        
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <!-- NOVO PLACAR ELETRÔNICO EM DESTAQUE -->
+                    <div class="live-scoreboard">
+                        <div class="scoreboard-team team-home" id="score-home-name">-</div>
+                        <div class="scoreboard-center">
+                            <div class="scoreboard-score" id="score-home-goals">0</div>
+                            <div class="scoreboard-time" id="score-match-time">00'</div>
+                            <div class="scoreboard-score" id="score-away-goals">0</div>
+                        </div>
+                        <div class="scoreboard-team team-away" id="score-away-name">-</div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 16px;">
+                        <div style="display: flex; gap: 10px;">
                             <button id="btn-play" style="flex: 1; font-size: 1.1rem; padding: 14px;" onclick="simulateMatchDay()"><i class="fa-solid fa-play"></i> Iniciar Simulação</button>
-                            <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="flex: 0.6;"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
+                            <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="display: block; width: 100%;"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
                         </div>
                         
-                        <div id="mid-match-actions" style="display: none; margin-top: 15px; gap: 10px;">
-                            <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%; margin-bottom: 8px;"><i class="fa-solid fa-people-arrows"></i> Substituição Rápida</button>
-                            <button id="btn-resume-match" onclick="resumeMatchSimulation()" style="background-color: var(--primary); color: black; width: 100%; display: none;">Continuar Segundo Tempo ➔</button>
+                        <div id="mid-match-actions" style="display: none; margin-top: 15px; flex-direction: column; gap: 10px;">
+                            <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%;"><i class="fa-solid fa-people-arrows"></i> Substituição Rápida</button>
+                            <button id="btn-resume-match" onclick="resumeMatchSimulation()" style="background-color: var(--primary); color: black; width: 100%;">Retomar Partida ➔</button>
                         </div>
                     </div>
 
@@ -642,12 +705,25 @@
             initChart();
 
             if (gameState.matchSimulatingActive) {
-                isMatchSimulating = true;
-                isIntervalPaused = gameState.matchIntervalPaused;
-                document.getElementById('match-live-log').innerHTML = `<div class="match-event-row">⏳ Partida restaurada do minuto ${gameState.currentMinute}.</div>`;
-                if (!isIntervalPaused) {
+                document.getElementById('btn-play').style.display = 'none';
+                document.getElementById('btn-auto-escalar-dash').style.display = 'none';
+                document.getElementById('mid-match-actions').style.display = 'flex';
+                
+                // Restaura o placar visual com os dados salvos
+                let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
+                document.getElementById('score-home-name').innerText = myClubName;
+                document.getElementById('score-away-name').innerText = gameState.opponentSaveName || "Rival";
+                document.getElementById('score-home-goals').innerText = gameState.myGoals;
+                document.getElementById('score-away-goals').innerText = gameState.oppGoals;
+                document.getElementById('score-match-time').innerText = gameState.currentMinute + "'";
+
+                if (!gameState.matchIntervalPaused) {
+                    isMatchSimulating = true;
+                    isIntervalPaused = false;
                     runMatchLoop();
                 } else {
+                    isMatchSimulating = false;
+                    isIntervalPaused = true;
                     document.getElementById('btn-resume-match').style.display = 'block';
                 }
             }
@@ -702,8 +778,9 @@
         if (matchedBtn) matchedBtn.classList.add('active');
 
         if (screenId === 'dashboard') {
-            if (gameState.matchSimulatingActive && !isIntervalPaused && !isMatchSimulating) {
+            if (gameState.matchSimulatingActive && !gameState.matchIntervalPaused && !isMatchSimulating) {
                 isMatchSimulating = true;
+                isIntervalPaused = false;
                 runMatchLoop();
             }
             prepareDashboard();
@@ -798,80 +875,6 @@
         updateTopBar();
         initChart();
         switchScreen('dashboard');
-    }
-
-    function initChart() {
-        const chartCanvas = document.getElementById('financeChart');
-        if (!chartCanvas) return;
-        const ctx = chartCanvas.getContext('2d');
-        if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: gameState.weeksLabels,
-                datasets: [{
-                    label: 'Saldo do Caixa (R$)',
-                    data: gameState.financeHistory,
-                    borderColor: '#00e676',
-                    backgroundColor: 'rgba(0, 230, 118, 0.05)',
-                    borderWidth: 3,
-                    tension: 0.2,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { color: '#222b3c' }, ticks: { color: '#707e94' } },
-                    y: { grid: { color: '#222b3c' }, ticks: { color: '#707e94' } }
-                }
-            }
-        });
-    }
-
-    function updateChart() {
-        if (!myChart) return;
-        myChart.data.labels = gameState.weeksLabels;
-        myChart.data.datasets[0].data = gameState.financeHistory;
-        myChart.update();
-    }
-
-    function executeAutoSelection() {
-        let req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 2, ATA: 2 };
-        if (gameState.formation === "4-3-3") req = { GOL: 1, ZAG: 4, VOL: 2, MEI: 1, ATA: 3 };
-        if (gameState.formation === "3-5-2") req = { GOL: 1, ZAG: 3, VOL: 3, MEI: 2, ATA: 2 };
-
-        gameState.players.forEach(p => p.status = "Reserva");
-        let sortedPool = [...gameState.players].sort((a, b) => b.ovr - a.ovr);
-        let selectedCount = 0;
-
-        for (let pos in req) {
-            let needed = req[pos];
-            let candidates = sortedPool.filter(p => p.pos === pos && p.status === "Reserva");
-            for (let i = 0; i < Math.min(needed, candidates.length); i++) {
-                let selectedPlayer = gameState.players.find(p => p.id === candidates[i].id);
-                if (selectedPlayer) {
-                    selectedPlayer.status = "Titular";
-                    selectedCount++;
-                }
-            }
-        }
-
-        if (selectedCount < 11) {
-            let generalCandidates = [...gameState.players].filter(p => p.status === "Reserva").sort((a, b) => b.ovr - a.ovr);
-            for (let i = 0; i < (11 - selectedCount); i++) {
-                if (generalCandidates[i]) {
-                    let selectedPlayer = gameState.players.find(p => p.id === generalCandidates[i].id);
-                    if (selectedPlayer) selectedPlayer.status = "Titular";
-                }
-            }
-        }
-
-        if (document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas();
-        if (document.getElementById('screen-elenco').classList.contains('active')) renderElencoColumns();
-        prepareDashboard();
     }
 
     function renderElencoColumns() {
@@ -1017,6 +1020,23 @@
         gameState.myGoals = 0;
         gameState.oppGoals = 0;
 
+        document.getElementById('btn-play').style.display = 'none';
+        document.getElementById('btn-auto-escalar-dash').style.display = 'none';
+        document.getElementById('mid-match-actions').style.display = 'flex';
+        document.getElementById('btn-resume-match').style.display = 'none';
+
+        // Inicializa nomes no Placar Eletrônico em Destaque
+        let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
+        let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
+        aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
+        gameState.opponentSaveName = aiEngine.opponent.name;
+
+        document.getElementById('score-home-name').innerText = myClubName;
+        document.getElementById('score-away-name').innerText = aiEngine.opponent.name;
+        document.getElementById('score-home-goals').innerText = "0";
+        document.getElementById('score-away-goals').innerText = "0";
+        document.getElementById('score-match-time').innerText = "00'";
+
         document.getElementById('match-live-log').innerHTML = `<div class="match-event-row">🏁 O árbitro autoriza e a bola rola no primeiro tempo!</div>`;
         generateMatchScript(); 
         runMatchLoop();
@@ -1028,6 +1048,9 @@
             if (!isMatchSimulating || isIntervalPaused) { clearInterval(matchIntervalToken); return; }
             
             gameState.currentMinute++;
+            
+            // Atualiza cronômetro eletrônico em destaque
+            document.getElementById('score-match-time').innerText = gameState.currentMinute + "'";
 
             gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.16); });
 
@@ -1036,8 +1059,11 @@
             if (gameState.currentMinute === 45) {
                 isIntervalPaused = true; 
                 gameState.matchIntervalPaused = true;
+                isMatchSimulating = false;
                 clearInterval(matchIntervalToken);
-                document.getElementById('match-live-log').innerHTML += `<div class="match-event-row goal-event">☕ 45' - Fim do primeiro tempo! Intervalo de jogo. Placar: Você ${gameState.myGoals} x ${gameState.oppGoals} ${aiEngine.opponent.name}</div>`;
+                
+                document.getElementById('score-match-time').innerText = "Intervalo";
+                document.getElementById('match-live-log').innerHTML += `<div class="match-event-row goal-event">☕ 45' - Fim do primeiro tempo! Intervalo de jogo.</div>`;
                 document.getElementById('btn-resume-match').style.display = 'block'; 
                 document.getElementById('match-live-log').scrollTop = document.getElementById('match-live-log').scrollHeight;
                 localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
@@ -1058,50 +1084,75 @@
                 clearInterval(matchIntervalToken); 
                 renderMatchEventVisual(nextEvent); 
             }
-        }, 100);
+        }, 150); // Cadência otimizada para visualização das mudanças de tempo
     }
 
-    function resumeMatchSimulation() { isIntervalPaused = false; gameState.matchIntervalPaused = false; isMatchSimulating = true; document.getElementById('btn-resume-match').style.display = 'none'; runMatchLoop(); }
+    function resumeMatchSimulation() { 
+        isIntervalPaused = false; 
+        gameState.matchIntervalPaused = false; 
+        isMatchSimulating = true; 
+        document.getElementById('btn-resume-match').style.display = 'none'; 
+        runMatchLoop(); 
+    }
 
     function renderMatchEventVisual(nextEvent) {
         let logBox = document.getElementById('match-live-log');
-        let attackers = gameState.players.filter(p => p.status === "Titular" && (p.pos === "ATA" || p.pos === "MEI"));
-        if(attackers.length === 0) attackers = gameState.players.filter(p => p.status === "Titular");
+        let starters = gameState.players.filter(p => p.status === "Titular");
+        let attackers = starters.filter(p => p.pos === "ATA" || p.pos === "MEI");
+        if(attackers.length === 0) attackers = starters;
         let pName = attackers[Math.floor(Math.random() * attackers.length)].name;
 
         if (nextEvent.owner === "user") {
             if (nextEvent.isGoal) {
                 gameState.myGoals++;
-                logBox.innerHTML += `<div class="match-event-row goal-event"><i class="fa-solid fa-circle-check"></i> [${gameState.currentMinute}'] GOOOOL! ${pName} limpa a marcação e balança a rede! (Você ${gameState.myGoals} x ${gameState.oppGoals} ${aiEngine.opponent.name})</div>`;
+                // Atualiza Placar em Destaque instantaneamente
+                document.getElementById('score-home-goals').innerText = gameState.myGoals;
+                logBox.innerHTML += `<div class="match-event-row goal-event"><i class="fa-solid fa-circle-check"></i> [${gameState.currentMinute}'] GOOOOL! ${pName} manda uma bomba sem chances para o goleiro!</div>`;
             } else {
-                logBox.innerHTML += `<div class="match-event-row user-event"><i class="fa-solid fa-angles-right"></i> [${gameState.currentMinute}'] Finalização de fora da área para fora! Passou raspando a trave.</div>`;
+                logBox.innerHTML += `<div class="match-event-row user-event"><i class="fa-solid fa-angles-right"></i> [${gameState.currentMinute}'] Finalização perigosa de ${pName} raspando a trave lateral!</div>`;
             }
         } else {
             if (nextEvent.isGoal) {
                 gameState.oppGoals++;
-                logBox.innerHTML += `<div class="match-event-row opp-event"><i class="fa-solid fa-circle-xmark"></i> [${gameState.currentMinute}'] GOL ADVERSÁRIO! O ${aiEngine.opponent.name} monta uma blitz e marca! (Você ${gameState.myGoals} x ${gameState.oppGoals})</div>`;
+                // Atualiza Placar em Destaque adversário instantaneamente
+                document.getElementById('score-away-goals').innerText = gameState.oppGoals;
+                logBox.innerHTML += `<div class="match-event-row opp-event"><i class="fa-solid fa-circle-xmark"></i> [${gameState.currentMinute}'] GOL ADVERSÁRIO! O ${aiEngine.opponent.name} infiltra pelas pontas e marca.</div>`;
             } else {
-                logBox.innerHTML += `<div class="match-event-row"><i class="fa-solid fa-handshake"></i> [${gameState.currentMinute}'] Ataque perigoso do rival, mas o sistema defensivo segura firme!</div>`;
+                logBox.innerHTML += `<div class="match-event-row"><i class="fa-solid fa-handshake"></i> [${gameState.currentMinute}'] O rival avança perigosamente, mas seu goleiro faz grande intervenção tática!</div>`;
             }
         }
         logBox.scrollTop = logBox.scrollHeight;
         
-        // Garante o prosseguimento contínuo do motor da IA
         setTimeout(() => {
-            isMatchSimulating = true;
-            runMatchLoop();
+            if (gameState.matchSimulatingActive && !gameState.matchIntervalPaused) {
+                isMatchSimulating = true;
+                runMatchLoop();
+            }
         }, 1400);
     }
 
     function prepareDashboard() {
         if (!gameState.userClub || gameState.week > 38) return;
-        document.getElementById('btn-play').style.display = isMatchSimulating ? 'none' : 'block';
-        document.getElementById('btn-auto-escalar-dash').style.display = isMatchSimulating ? 'none' : 'block';
-        document.getElementById('mid-match-actions').style.display = gameState.matchSimulatingActive ? 'block' : 'none';
+        document.getElementById('btn-play').style.display = gameState.matchSimulatingActive ? 'none' : 'block';
+        document.getElementById('btn-auto-escalar-dash').style.display = gameState.matchSimulatingActive ? 'none' : 'block';
+        document.getElementById('mid-match-actions').style.display = gameState.matchSimulatingActive ? 'flex' : 'none';
+        
+        if (!gameState.matchSimulatingActive) {
+            // Inicialização padrão do painel quando não há simulação em andamento
+            let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
+            let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
+            aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
+            
+            document.getElementById('score-home-name').innerText = myClubName;
+            document.getElementById('score-away-name').innerText = aiEngine.opponent.name;
+            document.getElementById('score-home-goals').innerText = "0";
+            document.getElementById('score-away-goals').innerText = "0";
+            document.getElementById('score-match-time').innerText = "00'";
+            document.getElementById('next-match-info').innerText = `Próximo confronto vs ${aiEngine.opponent.name}`;
+        } else {
+            document.getElementById('btn-resume-match').style.display = gameState.matchIntervalPaused ? 'block' : 'none';
+        }
 
-        let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
-        aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
-        document.getElementById('next-match-info').innerText = `Próximo confronto vs ${aiEngine.opponent.name}`;
         document.getElementById('dash-formation-badge').innerText = gameState.formation;
         renderVisualField('dash-field-players');
     }
@@ -1124,9 +1175,21 @@
         });
     }
 
-    function updateTopBar() {
-        document.getElementById('user-money').innerText = formatMoney(gameState.money);
-        document.getElementById('current-week').innerText = gameState.week;
+    function generateLeagueSchedule(teamList) {
+        let list = [...teamList];
+        let numTeams = list.length;
+        let rounds = numTeams - 1;
+        let turnMatches = [];
+        for (let r = 0; r < rounds; r++) {
+            let roundFixtures = [];
+            for (let i = 0; i < numTeams / 2; i++) {
+                roundFixtures.push({ home: list[i].id, away: list[numTeams - 1 - i].id });
+            }
+            turnMatches.push(roundFixtures);
+            list.splice(1, 0, list.pop());
+        }
+        let returnMatches = turnMatches.map(round => round.map(m => ({ home: m.away, away: m.home })));
+        return [...turnMatches, ...returnMatches];
     }
 
     function changeFormation() { gameState.formation = document.getElementById('select-formation').value; if(document.getElementById('screen-taticas').classList.contains('active')) renderInteractiveTaticas(); prepareDashboard(); }
@@ -1229,6 +1292,9 @@
         gameState.matchSimulatingActive = false;
         document.getElementById('mid-match-actions').style.display = 'none';
         btnPlay.style.display = 'block';
+        document.getElementById('btn-auto-escalar-dash').style.display = 'block';
+        
+        document.getElementById('score-match-time').innerText = "Fim";
         logBox.innerHTML += `<div class="match-event-row goal-event">🚨 90' - Fim de partida! Placar final: Você ${myGoals} x ${oppGoals} ${aiEngine.opponent.name}</div>`;
 
         let userClubObj = gameState.clubs.find(c => c.id === gameState.userClub);
@@ -1236,7 +1302,7 @@
         
         gameState.stats.matches++;
         if(myGoals > oppGoals) { userClubObj.pts += 3; userClubObj.v++; aiEngine.opponent.d++; gameState.stats.wins++; } 
-        else if(myGoals === oppGoals) { userClubObj.pts += 1; aiEngine.opponent.pts += 1; userClubObj.e++; aiEngine.opponent.e++; } 
+        else if(myGoals === oppGoals) { userClubObj.pts += 1; userClubObj.e++; aiEngine.opponent.e++; } 
         else { aiEngine.opponent.pts += 3; aiEngine.opponent.v++; userClubObj.d++; gameState.stats.losses++; }
 
         currentRoundMatches.forEach(match => {
@@ -1273,12 +1339,6 @@
         let tbody = "";
         gameState.clubs.forEach((c, idx) => { tbody += `<tr><td>${idx+1}</td><td><strong>${c.name}</strong></td><td>${c.pts}</td><td>${c.v}</td><td>${c.e}</td><td>${c.d}</td><td>${c.sg}</td></tr>`; });
         document.getElementById('table-classificacao').querySelector('tbody').innerHTML = tbody;
-    }
-
-    function getStartingElevenPower() {
-        let starters = gameState.players.filter(p => p.status === "Titular");
-        if(starters.length === 0) return 50;
-        return Math.floor(starters.reduce((acc, p) => acc + p.ovr, 0) / starters.length);
     }
 
     initGame();
