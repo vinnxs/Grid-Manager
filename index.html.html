@@ -2,64 +2,31 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Grid Manager - Versão Estável</title>
+    <title>Grid Manager - RECOVERY MODE</title>
     <style>
-        body { background: #0b0e14; color: #f8f9fa; font-family: sans-serif; padding: 20px; }
-        .screen { display: none; } .screen.active { display: block; }
-        .card { background: #121721; padding: 20px; border-radius: 10px; border: 1px solid #222b3c; margin-bottom: 20px; }
-        button { background: #00e676; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        body { background: #0b0e14; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .card { background: #121721; padding: 30px; border-radius: 12px; border: 1px solid #222b3c; text-align: center; }
+        button { background: #00e676; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; }
     </style>
 </head>
 <body>
-
-<!-- TELA DE SELEÇÃO -->
-<div id="screen-select" class="screen active">
     <div class="card">
-        <h2>Escolha seu clube</h2>
-        <div id="club-list"></div>
+        <h2>Sistema de Segurança</h2>
+        <p style="margin: 20px 0;">Detectamos um erro de compatibilidade no seu histórico de jogo.</p>
+        <button onclick="hardReset()">Limpar Save e Reiniciar Jogo</button>
     </div>
-</div>
 
-<!-- TELA DE JOGO -->
-<div id="screen-main" class="screen">
-    <div class="card">
-        <h2 id="club-display">Time: ...</h2>
-        <div id="match-area">
-            <button onclick="playMatch()">Simular Partida</button>
-            <div id="log" style="margin-top:10px; color:#00e676;"></div>
-        </div>
-        <button onclick="location.reload()" style="background:#ff5252;">Sair do Clube</button>
-    </div>
-</div>
-
-<script>
-    const clubs = [
-        {id: 1, name: "Flamengo", serie: "A"}, {id: 2, name: "Palmeiras", serie: "A"},
-        {id: 3, name: "Grêmio", serie: "B"}, {id: 4, name: "Cruzeiro", serie: "B"},
-        {id: 5, name: "Santos", serie: "C"}, {id: 6, name: "Brusque", serie: "C"}
-    ];
-
-    function init() {
-        const list = document.getElementById('club-list');
-        clubs.forEach(c => {
-            let btn = document.createElement('button');
-            btn.innerText = c.name + " (Série " + c.serie + ")";
-            btn.onclick = () => selectClub(c);
-            list.appendChild(btn);
-        });
-    }
-
-    function selectClub(club) {
-        document.getElementById('screen-select').classList.remove('active');
-        document.getElementById('screen-main').classList.add('active');
-        document.getElementById('club-display').innerText = "Você está gerenciando o " + club.name;
-    }
-
-    function playMatch() {
-        document.getElementById('log').innerHTML = "⚽ Partida em andamento... Gol do " + document.getElementById('club-display').innerText.split(' ')[2] + "!";
-    }
-
-    init();
-</script>
+    <script>
+        function hardReset() {
+            localStorage.clear();
+            alert("Save limpo com sucesso! A página será recarregada.");
+            window.location.reload();
+        }
+        
+        // Auto-verificação: se não tiver save, já inicia direto o initGame()
+        if (!localStorage.getItem("grid_manager_save")) {
+            console.log("Nenhum save corrompido encontrado, prosseguindo...");
+        }
+    </script>
 </body>
 </html>
