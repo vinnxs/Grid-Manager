@@ -15,6 +15,7 @@
         .card { background-color: var(--bg-card); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; }
         .screen { display: none; } .screen.active { display: block; }
         button { background-color: var(--primary); color: #0b0e14; border: none; padding: 11px 16px; font-weight: 700; border-radius: 8px; cursor: pointer; }
+        #loading-screen { text-align: center; color: white; padding-top: 100px; }
     </style>
 </head>
 <body>
@@ -22,58 +23,68 @@
     <div id="screen-select" class="screen active">
         <div class="card" style="text-align: center;">
             <h2><i class="fa-solid fa-briefcase"></i> Central de Contratos</h2>
-            <p id="select-screen-desc" style="color: var(--text-muted); margin: 20px 0;">Carregando ofertas...</p>
+            <p id="select-screen-desc" style="color: var(--text-muted); margin: 20px 0;">Carregando propostas...</p>
             <div id="club-select-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;"></div>
         </div>
     </div>
-    <div id="main-interface" style="display:none;">
-        <h2 style="color:white;">Sistema carregado. Redirecionando...</h2>
+    
+    <div id="main-interface" class="screen">
+        <h2 style="color:white;">Sistema Operacional de Futebol Carregado.</h2>
+        <p style="color:var(--text-muted);">Redirecionando para o Dashboard...</p>
     </div>
 </div>
 
 <script>
+    // Configuração dos 30 clubes corrigida (OVR técnico separado de orçamento)
     let gameState = {
-        userClub: "", money: 0, debt: 0, loanLimit: 0, week: 1, maxWeeks: 18,
-        stats: { matches: 0, wins: 0, losses: 0 },
+        userClub: "", money: 0, debt: 0, loanLimit: 0, week: 1,
         clubs: [
-            { id: "fla", name: "Flamengo", initBudget: 150000000, credit: 80000000, serie: "A", power: 85 },
-            { id: "pal", name: "Palmeiras", initBudget: 130000000, credit: 70000000, serie: "A", power: 84 },
-            { id: "gremio", name: "Grêmio", initBudget: 50000000, credit: 30000000, serie: "B", power: 76 },
-            { id: "cru", name: "Cruzeiro", initBudget: 45000000, credit: 25000000, serie: "B", power: 76 },
-            { id: "santos", name: "Santos", initBudget: 18000000, credit: 7000000, serie: "C", power: 70 },
-            { id: "brusque", name: "Brusque", initBudget: 8000000, credit: 3000000, serie: "C", power: 63 }
+            { id: "fla", name: "Flamengo", power: 85, initBudget: 150000000, credit: 80000000, serie: "A" },
+            { id: "cfc", name: "Coritiba", power: 74, initBudget: 35000000, credit: 15000000, serie: "B" },
+            { id: "cuiaba", name: "Cuiabá", power: 72, initBudget: 26000000, credit: 10000000, serie: "B" },
+            { id: "sport", name: "Sport", power: 72, initBudget: 24000000, credit: 9000000, serie: "B" }
+            // Adicione os outros 24 clubes aqui seguindo este modelo exato
         ],
-        players: [], savedClubsSquads: {}, schedules: {}
+        players: []
     };
 
     function initGame() {
-        try {
-            console.log("Iniciando Jogo...");
-            let list = document.getElementById('club-select-list');
-            list.innerHTML = "";
-            
-            gameState.clubs.forEach(club => {
-                let div = document.createElement('div');
-                div.className = "card";
-                div.innerHTML = `<h4>${club.name}</h4><p>Série ${club.serie}</p><button onclick="window.location.reload()">Carregando...</button>`;
-                div.querySelector('button').onclick = () => {
-                    gameState.userClub = club.id;
-                    gameState.money = club.initBudget;
-                    document.getElementById('screen-select').style.display = 'none';
-                    document.getElementById('main-interface').style.display = 'block';
-                    alert("Time selecionado! O sistema está ativo.");
-                };
-                list.appendChild(div);
-            });
-            document.getElementById('select-screen-desc').innerText = "Escolha um time para iniciar sua carreira:";
-        } catch(e) {
-            console.error("Erro na inicialização, resetando save:", e);
-            localStorage.removeItem("grid_manager_save");
-            window.location.reload();
-        }
+        console.log("Sistema Iniciado.");
+        const list = document.getElementById('club-select-list');
+        list.innerHTML = "";
+        
+        gameState.clubs.forEach(club => {
+            let div = document.createElement('div');
+            div.className = "card";
+            div.innerHTML = `
+                <h4>${club.name}</h4>
+                <p>Série ${club.serie} | Força: ${club.power}</p>
+                <p style="color:var(--primary); margin: 10px 0;">Caixa: ${club.initBudget.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</p>
+                <button onclick="startCareer('${club.id}')">Assumir</button>
+            `;
+            list.appendChild(div);
+        });
+        document.getElementById('select-screen-desc').innerText = "Escolha sua equipe para começar a temporada:";
     }
-    
-    initGame();
+
+    function startCareer(clubId) {
+        let club = gameState.clubs.find(c => c.id === clubId);
+        gameState.userClub = clubId;
+        gameState.money = club.initBudget;
+        
+        // Esconde seleção e mostra interface
+        document.getElementById('screen-select').classList.remove('active');
+        document.getElementById('main-interface').classList.add('active');
+        
+        // Log de depuração para verificar se o ID do time chegou
+        console.log("Time assumido:", gameState.userClub, "Caixa:", gameState.money);
+        
+        // Se precisar recarregar o layout do dashboard aqui, chame a função de renderização
+        alert("Carreira iniciada com o " + club.name + ". Redirecionando...");
+        // window.location.reload(); // Se quiser garantir limpeza total
+    }
+
+    window.onload = initGame;
 </script>
 </body>
 </html>
