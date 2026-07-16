@@ -141,7 +141,6 @@
 
         th { background-color: rgba(255,255,255,0.01); color: var(--text-muted); font-weight: 600; }
 
-        /* PLACAR ELETRÔNICO DO MATCHDAY */
         .live-scoreboard {
             background: var(--bg-scoreboard);
             border: 1px solid var(--border);
@@ -364,10 +363,6 @@
         .badge.pos-vol { color: #00bcd4; background: rgba(0, 188, 212, 0.1); }
         .badge.pos-mei { color: #e91e63; background: rgba(233, 30, 99, 0.1); }
         .badge.pos-ata { color: #ff5722; background: rgba(255, 87, 34, 0.1); }
-
-        .finance-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
-        .finance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .proposal-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         
         .history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 16px; }
         .history-card { background: rgba(255,255,255,0.01); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center; }
@@ -382,7 +377,7 @@
         <h1>Grid <span>Manager</span></h1>
         <div id="top-bar" class="top-info" style="display: none;">
             <span><i class="fa-solid fa-stadium"></i> <span id="user-club-name" style="font-weight: 700;"></span></span>
-            <span><i class="fa-solid fa-wallet"></i> <span id="user-money" style="color: var(--primary); font-weight: 700;">R$ 12.000.000</span></span>
+            <span><i class="fa-solid fa-wallet"></i> <span id="user-money" style="color: var(--primary); font-weight: 700;">-</span></span>
             <span><i class="fa-solid fa-calendar-days"></i> Rodada: <span id="current-week" style="font-weight: 700;">1</span>/38</span>
         </div>
     </header>
@@ -418,7 +413,7 @@
         <div id="screen-dashboard" class="screen">
             <div class="flex-dashboard">
                 <div>
-                    <!-- NOVO PLACAR ELETRÔNICO EM DESTAQUE -->
+                    <!-- PLACAR ELETRÔNICO EM DESTAQUE -->
                     <div class="live-scoreboard">
                         <div class="scoreboard-team team-home" id="score-home-name">-</div>
                         <div class="scoreboard-center">
@@ -430,11 +425,12 @@
                     </div>
 
                     <div class="card" style="margin-bottom: 16px;">
-                        <div style="display: flex; gap: 10px;">
-                            <button id="btn-play" style="flex: 1; font-size: 1.1rem; padding: 14px;" onclick="simulateMatchDay()"><i class="fa-solid fa-play"></i> Iniciar Simulação</button>
+                        <div style="display: flex; gap: 10px; flex-direction: column;">
+                            <button id="btn-play" style="width: 100%; font-size: 1.1rem; padding: 14px;" onclick="simulateMatchDay()"><i class="fa-solid fa-play"></i> Iniciar Simulação</button>
                             <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="display: block; width: 100%;"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
                         </div>
                         
+                        <!-- BOTÕES DE PAUSA DO INTERVALO/FIFA PAUSE -->
                         <div id="mid-match-actions" style="display: none; margin-top: 15px; flex-direction: column; gap: 10px;">
                             <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%;"><i class="fa-solid fa-people-arrows"></i> Substituição Rápida</button>
                             <button id="btn-resume-match" onclick="resumeMatchSimulation()" style="background-color: var(--primary); color: black; width: 100%;">Retomar Partida ➔</button>
@@ -567,7 +563,7 @@
                     <div class="finance-item"><span>Limite de Crédito</span><span id="loan-limit-value" style="color: var(--info);">R$ 0</span></div>
                     <div style="display: flex; gap: 10px; margin-top: 12px;">
                         <button id="btn-take-loan" onclick="takeLoan()" style="background-color: var(--warning); color: black; flex: 1;"><i class="fa-solid fa-hand-holding-dollar"></i> Pegar Empréstimo</button>
-                        <button onclick="payLoan()" class="danger" style="flex: 1;"><i class="fa-solid fa-money-bill-wave"></i> Pagar Parcela</button>
+                        <button id="btn-pay-loan" onclick="payLoan()" class="danger" style="flex: 1;"><i class="fa-solid fa-money-bill-wave"></i> Pagar Parcela</button>
                     </div>
                 </div>
                 
@@ -604,7 +600,7 @@
                     <h4>Carreira Administrativa</h4>
                     <p style="margin-top: 10px; color: var(--text-muted);">Você está gerenciando o clube atual nesta temporada. Caso peça demissão, todo o progresso do campeonato atual será limpo e você retornará à tela de seleção de equipes.</p>
                 </div>
-                <h4 style="margin-top: 20px;">Estatísticas de Partidas</h4>
+                h4 style="margin-top: 20px;">Estatísticas de Partidas</h4>
                 <div class="history-grid">
                     <div class="history-card"><h4>Jogos</h4><p id="hist-matches">0</p></div>
                     <div class="history-card"><h4>Vitórias</h4><p id="hist-wins" style="color: var(--primary);">0</p></div>
@@ -700,6 +696,10 @@
             document.getElementById('main-interface').style.display = 'block';
             document.getElementById('top-bar').style.display = 'flex';
             
+            // Força os textos de juros/parcelas dos botões com base no save recuperado
+            document.getElementById('btn-take-loan').innerHTML = `<i class="fa-solid fa-hand-holding-dollar"></i> Pegar ${formatMoney(gameState.loanChunk)}`;
+            document.getElementById('btn-pay-loan').innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> Pagar ${formatMoney(gameState.loanChunk)}`;
+            
             updateTopBar();
             switchScreen('dashboard');
             initChart();
@@ -709,7 +709,6 @@
                 document.getElementById('btn-auto-escalar-dash').style.display = 'none';
                 document.getElementById('mid-match-actions').style.display = 'flex';
                 
-                // Restaura o placar visual com os dados salvos
                 let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
                 document.getElementById('score-home-name').innerText = myClubName;
                 document.getElementById('score-away-name').innerText = gameState.opponentSaveName || "Rival";
@@ -825,6 +824,7 @@
         gameState.loanChunk = Math.floor(activeClub.credit / 4);
 
         document.getElementById('btn-take-loan').innerHTML = `<i class="fa-solid fa-hand-holding-dollar"></i> Pegar ${formatMoney(gameState.loanChunk)}`;
+        document.getElementById('btn-pay-loan').innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> Pagar ${formatMoney(gameState.loanChunk)}`;
 
         if (clubId === "cfc") {
             const baseSquad = [
@@ -1025,7 +1025,6 @@
         document.getElementById('mid-match-actions').style.display = 'flex';
         document.getElementById('btn-resume-match').style.display = 'none';
 
-        // Inicializa nomes no Placar Eletrônico em Destaque
         let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
         let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
         aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
@@ -1049,7 +1048,6 @@
             
             gameState.currentMinute++;
             
-            // Atualiza cronômetro eletrônico em destaque
             document.getElementById('score-match-time').innerText = gameState.currentMinute + "'";
 
             gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.16); });
@@ -1084,7 +1082,7 @@
                 clearInterval(matchIntervalToken); 
                 renderMatchEventVisual(nextEvent); 
             }
-        }, 150); // Cadência otimizada para visualização das mudanças de tempo
+        }, 150); 
     }
 
     function resumeMatchSimulation() { 
@@ -1105,7 +1103,6 @@
         if (nextEvent.owner === "user") {
             if (nextEvent.isGoal) {
                 gameState.myGoals++;
-                // Atualiza Placar em Destaque instantaneamente
                 document.getElementById('score-home-goals').innerText = gameState.myGoals;
                 logBox.innerHTML += `<div class="match-event-row goal-event"><i class="fa-solid fa-circle-check"></i> [${gameState.currentMinute}'] GOOOOL! ${pName} manda uma bomba sem chances para o goleiro!</div>`;
             } else {
@@ -1114,7 +1111,6 @@
         } else {
             if (nextEvent.isGoal) {
                 gameState.oppGoals++;
-                // Atualiza Placar em Destaque adversário instantaneamente
                 document.getElementById('score-away-goals').innerText = gameState.oppGoals;
                 logBox.innerHTML += `<div class="match-event-row opp-event"><i class="fa-solid fa-circle-xmark"></i> [${gameState.currentMinute}'] GOL ADVERSÁRIO! O ${aiEngine.opponent.name} infiltra pelas pontas e marca.</div>`;
             } else {
@@ -1137,12 +1133,11 @@
         document.getElementById('btn-auto-escalar-dash').style.display = gameState.matchSimulatingActive ? 'none' : 'block';
         document.getElementById('mid-match-actions').style.display = gameState.matchSimulatingActive ? 'flex' : 'none';
         
+        let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
+        let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
+        aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
+
         if (!gameState.matchSimulatingActive) {
-            // Inicialização padrão do painel quando não há simulação em andamento
-            let myClubName = gameState.clubs.find(c => c.id === gameState.userClub).name;
-            let userMatch = gameState.schedule[gameState.week - 1].find(m => m.home === gameState.userClub || m.away === gameState.userClub);
-            aiEngine.opponent = gameState.clubs.find(c => c.id === (userMatch.home === gameState.userClub ? userMatch.away : userMatch.home));
-            
             document.getElementById('score-home-name').innerText = myClubName;
             document.getElementById('score-away-name').innerText = aiEngine.opponent.name;
             document.getElementById('score-home-goals').innerText = "0";
@@ -1173,6 +1168,12 @@
                 </div>`;
             }
         });
+    }
+
+    // FIX DA BARRA DE INFORMAÇÕES SUPERIOR SINCRO COM GAMESTATE
+    function updateTopBar() {
+        document.getElementById('user-money').innerText = formatMoney(gameState.money);
+        document.getElementById('current-week').innerText = gameState.week;
     }
 
     function generateLeagueSchedule(teamList) {
@@ -1251,6 +1252,7 @@
         document.getElementById('loan-limit-value').innerText = formatMoney(gameState.loanLimit);
     }
 
+    // ATUALIZAÇÃO SINCRO DA BARRA SUPERIOR APÓS TRANSAÇÕES DO BANCO
     function takeLoan() { 
         if (gameState.loanLimit <= 0) return alert("Limite bancário estourado!"); 
         gameState.money += gameState.loanChunk; gameState.debt += gameState.loanChunk; gameState.loanLimit -= gameState.loanChunk; 
@@ -1339,6 +1341,12 @@
         let tbody = "";
         gameState.clubs.forEach((c, idx) => { tbody += `<tr><td>${idx+1}</td><td><strong>${c.name}</strong></td><td>${c.pts}</td><td>${c.v}</td><td>${c.e}</td><td>${c.d}</td><td>${c.sg}</td></tr>`; });
         document.getElementById('table-classificacao').querySelector('tbody').innerHTML = tbody;
+    }
+
+    function getStartingElevenPower() {
+        let starters = gameState.players.filter(p => p.status === "Titular");
+        if(starters.length === 0) return 50;
+        return Math.floor(starters.reduce((acc, p) => acc + p.ovr, 0) / starters.length);
     }
 
     initGame();
