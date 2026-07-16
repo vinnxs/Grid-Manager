@@ -1,31 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Grid Manager - RECOVERY MODE</title>
-    <style>
-        body { background: #0b0e14; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        .card { background: #121721; padding: 30px; border-radius: 12px; border: 1px solid #222b3c; text-align: center; }
-        button { background: #00e676; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>Sistema de Segurança</h2>
-        <p style="margin: 20px 0;">Detectamos um erro de compatibilidade no seu histórico de jogo.</p>
-        <button onclick="hardReset()">Limpar Save e Reiniciar Jogo</button>
-    </div>
-
+<html>
+<body style="background:#0b0e14; color:white; font-family:sans-serif; padding:50px;">
+    <h1>Diagnosticando...</h1>
+    <div id="error-log" style="color:#ff5252; font-weight:bold; margin-top:20px;"></div>
     <script>
-        function hardReset() {
-            localStorage.clear();
-            alert("Save limpo com sucesso! A página será recarregada.");
-            window.location.reload();
-        }
-        
-        // Auto-verificação: se não tiver save, já inicia direto o initGame()
-        if (!localStorage.getItem("grid_manager_save")) {
-            console.log("Nenhum save corrompido encontrado, prosseguindo...");
+        try {
+            // Tentando rodar a função principal
+            initGame();
+            document.getElementById('error-log').innerText = "initGame() rodou sem erros.";
+        } catch (err) {
+            document.getElementById('error-log').innerText = "ERRO DETECTADO: " + err.message + " | Linha: " + err.stack;
         }
     </script>
 </body>
