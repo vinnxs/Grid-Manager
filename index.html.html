@@ -2,12 +2,13 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Grid Manager - Versão Corrigida</title>
+    <title>Grid Manager - Versão Estável</title>
     <style>
-        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 20px; }
+        :root { --bg: #0b0e14; --primary: #00e676; --text: #fff; --border: #222b3c; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 20px; }
         .screen { display: none; } .screen.active { display: block; }
-        .card { background: #121721; padding: 20px; border-radius: 10px; border: 1px solid #222b3c; margin-bottom: 20px; }
-        button { background: #00e676; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .card { background: #121721; padding: 20px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; }
+        button { background: var(--primary); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -21,31 +22,21 @@
 
 <div id="screen-main" class="screen">
     <div class="card">
-        <h2 id="club-name-display">Time</h2>
-        <p id="club-money-display">Caixa: R$ 0</p>
-        <button onclick="location.reload()">Sair do Clube</button>
+        <h2 id="club-display">Time: ...</h2>
+        <p id="money-display">Caixa: R$ 0</p>
+        <button onclick="location.reload()" style="background:#ff5252;">Sair do Clube</button>
     </div>
 </div>
 
 <script>
-    // Estrutura corrigida (Força dos times corrigida para evitar NaN)
     const clubs = [
-        { id: "fla", name: "Flamengo", power: 85, budget: 150000000 },
-        { id: "pal", name: "Palmeiras", power: 84, budget: 130000000 },
-        { id: "vasco", name: "Vasco", power: 75, budget: 36000000 },
-        { id: "cfc", name: "Coritiba", power: 74, budget: 35000000 },
-        { id: "cuiaba", name: "Cuiabá", power: 72, budget: 26000000 },
-        { id: "sport", name: "Sport", power: 72, budget: 24000000 }
+        { id: 1, name: "Flamengo", budget: 150000000 },
+        { id: 2, name: "Palmeiras", budget: 130000000 },
+        { id: 3, name: "Coritiba", budget: 35000000 }
     ];
 
-    function initGame() {
-        console.log("Inicializando jogo...");
-        // Limpa save antigo que causa travamento
-        localStorage.clear();
-        
+    function init() {
         const list = document.getElementById('club-list');
-        list.innerHTML = "";
-        
         clubs.forEach(c => {
             let btn = document.createElement('button');
             btn.innerText = c.name;
@@ -59,11 +50,11 @@
         document.getElementById('screen-select').classList.remove('active');
         document.getElementById('screen-main').classList.add('active');
         
-        document.getElementById('club-name-display').innerText = "Gerenciando: " + club.name;
-        document.getElementById('club-money-display').innerText = "Caixa: " + club.budget.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+        document.getElementById('club-display').innerText = "Gerenciando: " + club.name;
+        document.getElementById('money-display').innerText = "Caixa: " + club.budget.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
     }
 
-    window.onload = initGame;
+    init();
 </script>
 </body>
 </html>
