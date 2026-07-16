@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grid Manager - Ultimate Edition</title>
+    <title>Grid Manager - Career & Evolution Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -158,7 +158,7 @@
             width: 35%;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+ white-space: nowrap;
         }
         .scoreboard-team.team-home { text-align: right; }
         .scoreboard-team.team-away { text-align: left; }
@@ -382,17 +382,17 @@
         </div>
     </header>
 
-    <!-- SELEÇÃO DE TIME -->
+    <!-- MERCADO DE TRABALHO REALISTA (PROPOSTAS LIMITADAS) -->
     <div id="screen-select" class="screen active">
         <div class="card" style="text-align: center; padding: 40px 20px;">
-            <h2 style="font-size: 1.8rem; margin-bottom: 8px;">Escolha sua Equipe (Série A)</h2>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">Gerencie o elenco arrastando titulares e reservas de forma intuitiva.</p>
+            <h2 style="font-size: 1.8rem; margin-bottom: 8px;"><i class="fa-solid fa-briefcase"></i> Propostas de Emprego Disponíveis</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;" id="select-screen-desc">Como no futebol real, analise as ofertas de contrato enviadas pelos clubes.</p>
             
             <div id="load-save-container" style="margin-bottom: 30px; display:none;">
                 <button onclick="loadGame()" style="background-color: var(--info); color:#0b0e14; padding:12px 24px;"><i class="fa-solid fa-folder-open"></i> Carregar Jogo Salvo</button>
             </div>
 
-            <div id="club-select-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;"></div>
+            <div id="club-select-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; max-width: 800px; margin: 0 auto;"></div>
         </div>
     </div>
 
@@ -413,7 +413,6 @@
         <div id="screen-dashboard" class="screen">
             <div class="flex-dashboard">
                 <div>
-                    <!-- PLACAR ELETRÔNICO EM DESTAQUE -->
                     <div class="live-scoreboard">
                         <div class="scoreboard-team team-home" id="score-home-name">-</div>
                         <div class="scoreboard-center">
@@ -430,7 +429,6 @@
                             <button id="btn-auto-escalar-dash" class="secondary" onclick="executeAutoSelection()" style="display: block; width: 100%;"><i class="fa-solid fa-bolt"></i> Auto-Escalar</button>
                         </div>
                         
-                        <!-- BOTÕES DE PAUSA DO INTERVALO/FIFA PAUSE -->
                         <div id="mid-match-actions" style="display: none; margin-top: 15px; flex-direction: column; gap: 10px;">
                             <button id="btn-mid-sub" onclick="openMidMatchSubstitution()" style="background-color: var(--warning); color: black; width: 100%;"><i class="fa-solid fa-people-arrows"></i> Substituição Rápida</button>
                             <button id="btn-resume-match" onclick="resumeMatchSimulation()" style="background-color: var(--primary); color: black; width: 100%;">Retomar Partida ➔</button>
@@ -594,13 +592,13 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>Escritório do Treinador</h2>
-                    <button class="danger" onclick="resignFromClub()"><i class="fa-solid fa-door-open"></i> Demitir-se do Clube</button>
+                    <button class="danger" onclick="resignFromClub()"><i class="fa-solid fa-door-open"></i> Resignar do Cargo (Ver Propostas)</button>
                 </div>
                 <div class="card" style="background: rgba(255,255,255,0.02); border-color: var(--border);">
-                    <h4>Carreira Administrativa</h4>
-                    <p style="margin-top: 10px; color: var(--text-muted);">Você está gerenciando o clube atual nesta temporada. Caso peça demissão, todo o progresso do campeonato atual será limpo e você retornará à tela de seleção de equipes.</p>
+                    <h4>Carreira Administrativa Contínua</h4>
+                    <p style="margin-top: 10px; color: var(--text-muted);">Ao deixar o cargo, a liga e o histórico não somem. O mercado de empresários gerará propostas de emprego baseadas no seu prestígio atual!</p>
                 </div>
-                h4 style="margin-top: 20px;">Estatísticas de Partidas</h4>
+                <h4 style="margin-top: 20px;">Estatísticas de Carreira Acumuladas</h4>
                 <div class="history-grid">
                     <div class="history-card"><h4>Jogos</h4><p id="hist-matches">0</p></div>
                     <div class="history-card"><h4>Vitórias</h4><p id="hist-wins" style="color: var(--primary);">0</p></div>
@@ -641,6 +639,7 @@
             { id: "vasco", name: "Vasco", pts: 0, v: 0, e: 0, d: 0, sg: 0, power: 76, initBudget: 40000000, credit: 20000000 }
         ],
         players: [],
+        savedClubsSquads: {},
         market: [],
         proposals: [],
         schedule: []
@@ -681,8 +680,13 @@
 
     function saveGame() {
         if (!gameState.userClub) return;
+        gameState.savedClubsSquads[gameState.userClub] = {
+            players: gameState.players, money: gameState.money, debt: gameState.debt,
+            loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
+            financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
+        };
         localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
-        alert("Jogo salvo com sucesso! 💾");
+        alert("Jogo e carreira salvos com sucesso! 💾");
     }
 
     function loadGame() {
@@ -691,12 +695,23 @@
             gameState = JSON.parse(savedData);
             gameState.schedule = generateLeagueSchedule(gameState.clubs);
             
+            if(gameState.savedClubsSquads[gameState.userClub]){
+                let clData = gameState.savedClubsSquads[gameState.userClub];
+                gameState.players = clData.players;
+                gameState.money = clData.money;
+                gameState.debt = clData.debt;
+                gameState.loanLimit = clData.loanLimit;
+                gameState.loanChunk = clData.loanChunk;
+                gameState.financeHistory = clData.financeHistory;
+                gameState.weeksLabels = clData.weeksLabels;
+                gameState.finances = clData.finances;
+            }
+
             document.getElementById('user-club-name').innerText = gameState.clubs.find(c => c.id === gameState.userClub).name;
             document.getElementById('screen-select').style.display = 'none';
             document.getElementById('main-interface').style.display = 'block';
             document.getElementById('top-bar').style.display = 'flex';
             
-            // Força os textos de juros/parcelas dos botões com base no save recuperado
             document.getElementById('btn-take-loan').innerHTML = `<i class="fa-solid fa-hand-holding-dollar"></i> Pegar ${formatMoney(gameState.loanChunk)}`;
             document.getElementById('btn-pay-loan').innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> Pagar ${formatMoney(gameState.loanChunk)}`;
             
@@ -737,9 +752,22 @@
     }
 
     function resignFromClub() {
-        if (confirm("Tem certeza que deseja pedir demissão? Seu progresso atual será deletado.")) {
-            localStorage.removeItem("grid_manager_save");
-            window.location.reload();
+        if (confirm("Deseja mesmo deixar o cargo? Você receberá apenas propostas de clubes compatíveis com sua reputação.")) {
+            if(gameState.userClub) {
+                gameState.savedClubsSquads[gameState.userClub] = {
+                    players: gameState.players, money: gameState.money, debt: gameState.debt,
+                    loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
+                    financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
+                };
+            }
+            
+            gameState.userClub = "";
+            localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
+            
+            document.getElementById('main-interface').style.display = 'none';
+            document.getElementById('top-bar').style.display = 'none';
+            document.getElementById('screen-select').style.display = 'block';
+            initGame();
         }
     }
 
@@ -798,76 +826,125 @@
         document.getElementById('hist-losses').innerText = gameState.stats.losses;
     }
 
+    // SISTEMA DE PROPOSTAS REALISTAS LIMITADAS CONFORME REPUTAÇÃO DO TÉCNICO
     function initGame() {
         let selectHtml = "";
-        gameState.clubs.forEach(club => {
-            selectHtml += `<div class="card" style="margin-bottom:0; padding:16px; text-align:center;">
-                <h4 style="font-weight:700;">${club.name}</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom:4px;">OVR ${club.power}</p>
-                <p style="font-size: 0.75rem; color: var(--primary); margin-bottom:12px;">Caixa: ${formatMoney(club.initBudget)}</p>
-                <button onclick="selectClub('${club.id}')">Assumir</button>
+        let availableClubs = [];
+
+        // Se for o início absoluto da carreira, o técnico recebe convites de times intermediários/reconstrução
+        if(gameState.stats.matches === 0) {
+            availableClubs = gameState.clubs.filter(c => c.id === "cfc" || c.id === "vasco");
+            document.getElementById('select-screen-desc').innerText = "Início de Carreira: Você recebeu propostas de duas equipes querendo reestruturação.";
+        } else {
+            // Se já tem estrada, as propostas são geradas dinamicamente com base no aproveitamento
+            let winRate = gameState.stats.wins / gameState.stats.matches;
+            let sortedClubs = [...gameState.clubs].sort((a,b) => b.power - a.power);
+
+            if(winRate >= 0.55) {
+                // Alto escalão: Propostas de gigantes do topo
+                availableClubs = [sortedClubs[0], sortedClubs[1]];
+                document.getElementById('select-screen-desc').innerText = `Seu prestígio está alto (${Math.floor(winRate*100)}% de vitórias)! Os gigantes da liga disputam sua contratação.`;
+            } else if(winRate >= 0.35) {
+                // Escalão médio
+                availableClubs = [sortedClubs[3], sortedClubs[4]];
+                document.getElementById('select-screen-desc').innerText = `Boa reputação (${Math.floor(winRate*100)}% de vitórias). Equipes competitivas te enviaram contratos.`;
+            } else {
+                // Baixo escalão ou fase ruim
+                availableClubs = [sortedClubs[6], sortedClubs[7]];
+                document.getElementById('select-screen-desc').innerText = "Fase de reabilitação. Apenas clubes lutando contra o rebaixamento te ofereceram cargo.";
+            }
+        }
+
+        availableClubs.forEach(club => {
+            selectHtml += `
+            <div class="card" style="margin-bottom:0; padding:24px; text-align:center; border: 2px solid var(--border); transition: border-color 0.2s;">
+                <div style="font-size: 2.5rem; margin-bottom: 10px; color: var(--primary);"><i class="fa-solid fa-file-signature"></i></div>
+                <h3 style="font-weight:800; font-size:1.3rem; margin-bottom: 4px;">${club.name}</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom:12px;">Força do Elenco: OVR ${club.power}</p>
+                <div style="background: rgba(255,255,255,0.02); border-radius:6px; padding:10px; margin-bottom: 16px; font-size:0.85rem; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Orçamento:</span><span style="color:var(--primary); font-weight:700;">${formatMoney(club.initBudget)}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Crédito Bancário:</span><span style="color:var(--info);">${formatMoney(club.credit)}</span></div>
+                </div>
+                <button onclick="selectClub('${club.id}')" style="width:100%; padding:12px;"><i class="fa-solid fa-check"></i> Aceitar Contrato</button>
             </div>`;
         });
+
         document.getElementById('club-select-list').innerHTML = selectHtml;
         generateMarket();
-        gameState.schedule = generateLeagueSchedule(gameState.clubs);
+        if(gameState.schedule.length === 0) {
+            gameState.schedule = generateLeagueSchedule(gameState.clubs);
+        }
         checkExistingSave();
     }
 
     function selectClub(clubId) {
         gameState.userClub = clubId;
-        let activeClub = gameState.clubs.find(c => c.id === clubId);
         
-        gameState.money = activeClub.initBudget;
-        gameState.loanLimit = activeClub.credit;
-        gameState.financeHistory = [gameState.money];
-        gameState.loanChunk = Math.floor(activeClub.credit / 4);
+        if (gameState.savedClubsSquads[clubId]) {
+            let clData = gameState.savedClubsSquads[clubId];
+            gameState.players = clData.players;
+            gameState.money = clData.money;
+            gameState.debt = clData.debt;
+            gameState.loanLimit = clData.loanLimit;
+            gameState.loanChunk = clData.loanChunk;
+            gameState.financeHistory = clData.financeHistory;
+            gameState.weeksLabels = clData.weeksLabels;
+            gameState.finances = clData.finances;
+        } else {
+            let activeClub = gameState.clubs.find(c => c.id === clubId);
+            gameState.money = activeClub.initBudget;
+            gameState.loanLimit = activeClub.credit;
+            gameState.financeHistory = [gameState.money];
+            gameState.loanChunk = Math.floor(activeClub.credit / 4);
+            gameState.finances = { tickets: 0, sponsor: 0, wages: 0, spent: 0 };
+            gameState.weeksLabels = ["Início"];
+
+            if (clubId === "cfc") {
+                const baseSquad = [
+                    { name: "Pedro Morisco", age: 21, pos: "GOL", ovr: 75, wage: 15000, status: "Titular", stamina: 100, val: 3200000, onSale: false },
+                    { name: "Sebastián Gómez", age: 29, pos: "VOL", ovr: 78, wage: 25000, status: "Titular", stamina: 100, val: 5100000, onSale: false },
+                    { name: "Josué Pesqueira", age: 33, pos: "MEI", ovr: 79, wage: 30000, status: "Titular", stamina: 100, val: 3400000, onSale: false },
+                    { name: "B. Kuscevic", age: 27, pos: "ZAG", ovr: 75, wage: 24000, status: "Titular", stamina: 100, val: 4200000, onSale: false },
+                    { name: "Maurício Antônio", age: 31, pos: "ZAG", ovr: 71, wage: 18000, status: "Titular", stamina: 100, val: 2100000, onSale: false },
+                    { name: "Natanael", age: 23, pos: "ZAG", ovr: 72, wage: 15000, status: "Titular", stamina: 100, val: 3100000, onSale: false },
+                    { name: "Felipe Jonatan", age: 26, pos: "ZAG", ovr: 72, wage: 19000, status: "Titular", stamina: 100, val: 2900000, onSale: false },
+                    { name: "Thalisson G.", age: 22, pos: "ZAG", ovr: 69, wage: 10000, status: "Titular", stamina: 100, val: 1800000, onSale: false },
+                    { name: "Lucas Ronier", age: 20, pos: "ATA", ovr: 76, wage: 22000, status: "Titular", stamina: 100, val: 6800000, onSale: false },
+                    { name: "Breno Lopes", age: 28, pos: "ATA", ovr: 75, wage: 28000, status: "Titular", stamina: 100, val: 4500000, onSale: false },
+                    { name: "Pedro Rocha", age: 29, pos: "ATA", ovr: 73, wage: 23000, status: "Titular", stamina: 100, val: 3600000, onSale: false },
+                    { name: "Gabriel Leite", age: 30, pos: "GOL", ovr: 66, wage: 8000, status: "Reserva", stamina: 100, val: 750000, onSale: false },
+                    { name: "Vini Paulista", age: 24, pos: "VOL", ovr: 71, wage: 12000, status: "Reserva", stamina: 100, val: 2100000, onSale: false },
+                    { name: "Yago Ferreira", age: 23, pos: "MEI", ovr: 69, wage: 11000, status: "Reserva", stamina: 100, val: 1400000, onSale: false },
+                    { name: "Brandão", age: 19, pos: "ATA", ovr: 65, wage: 6000, status: "Reserva", stamina: 100, val: 950000, onSale: false }
+                ];
+                gameState.players = baseSquad.map((p, index) => ({ id: index + 100, ...p }));
+            } else {
+                const firstN = ["Lucas", "Gabriel", "Rodrigo", "Marcos", "Alex", "Marcelo", "Alan", "Erick"];
+                const lastN = ["Silva", "Santos", "Souza", "Pereira", "Teixeira", "Ribeiro"];
+                for (let i = 0; i < 16; i++) {
+                    let ovr = Math.floor(Math.random() * 6) + (activeClub.power - 2);
+                    let age = Math.floor(Math.random() * 15) + 18;
+                    let val = Math.floor((ovr * ovr * 1200) * (28 / age));
+                    gameState.players.push({
+                        id: Date.now() + i,
+                        name: firstN[Math.floor(Math.random() * firstN.length)] + " " + lastN[Math.floor(Math.random() * lastN.length)],
+                        age: age,
+                        pos: Object.keys(positionOrder)[Math.floor(Math.random() * 5)],
+                        ovr: ovr,
+                        wage: ovr * 280,
+                        status: i < 11 ? "Titular" : "Reserva",
+                        stamina: 100,
+                        val: val,
+                        onSale: false
+                    });
+                }
+            }
+        }
 
         document.getElementById('btn-take-loan').innerHTML = `<i class="fa-solid fa-hand-holding-dollar"></i> Pegar ${formatMoney(gameState.loanChunk)}`;
         document.getElementById('btn-pay-loan').innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> Pagar ${formatMoney(gameState.loanChunk)}`;
 
-        if (clubId === "cfc") {
-            const baseSquad = [
-                { name: "Pedro Morisco", age: 21, pos: "GOL", ovr: 75, wage: 15000, status: "Titular", stamina: 100, val: 3200000, onSale: false },
-                { name: "Sebastián Gómez", age: 29, pos: "VOL", ovr: 78, wage: 25000, status: "Titular", stamina: 100, val: 5100000, onSale: false },
-                { name: "Josué Pesqueira", age: 33, pos: "MEI", ovr: 79, wage: 30000, status: "Titular", stamina: 100, val: 3400000, onSale: false },
-                { name: "B. Kuscevic", age: 27, pos: "ZAG", ovr: 75, wage: 24000, status: "Titular", stamina: 100, val: 4200000, onSale: false },
-                { name: "Maurício Antônio", age: 31, pos: "ZAG", ovr: 71, wage: 18000, status: "Titular", stamina: 100, val: 2100000, onSale: false },
-                { name: "Natanael", age: 23, pos: "ZAG", ovr: 72, wage: 15000, status: "Titular", stamina: 100, val: 3100000, onSale: false },
-                { name: "Felipe Jonatan", age: 26, pos: "ZAG", ovr: 72, wage: 19000, status: "Titular", stamina: 100, val: 2900000, onSale: false },
-                { name: "Thalisson G.", age: 22, pos: "ZAG", ovr: 69, wage: 10000, status: "Titular", stamina: 100, val: 1800000, onSale: false },
-                { name: "Lucas Ronier", age: 20, pos: "ATA", ovr: 76, wage: 22000, status: "Titular", stamina: 100, val: 6800000, onSale: false },
-                { name: "Breno Lopes", age: 28, pos: "ATA", ovr: 75, wage: 28000, status: "Titular", stamina: 100, val: 4500000, onSale: false },
-                { name: "Pedro Rocha", age: 29, pos: "ATA", ovr: 73, wage: 23000, status: "Titular", stamina: 100, val: 3600000, onSale: false },
-                { name: "Gabriel Leite", age: 30, pos: "GOL", ovr: 66, wage: 8000, status: "Reserva", stamina: 100, val: 750000, onSale: false },
-                { name: "Vini Paulista", age: 24, pos: "VOL", ovr: 71, wage: 12000, status: "Reserva", stamina: 100, val: 2100000, onSale: false },
-                { name: "Yago Ferreira", age: 23, pos: "MEI", ovr: 69, wage: 11000, status: "Reserva", stamina: 100, val: 1400000, onSale: false },
-                { name: "Brandão", age: 19, pos: "ATA", ovr: 65, wage: 6000, status: "Reserva", stamina: 100, val: 950000, onSale: false }
-            ];
-            gameState.players = baseSquad.map((p, index) => ({ id: index + 100, ...p }));
-        } else {
-            const firstN = ["Ronaldo", "Marcos", "Alex", "Marcelo", "Juninho", "Alan", "Diego", "Erick"];
-            const lastN = ["Souza", "Pereira", "Teixeira", "Ribeiro", "Cardoso", "Barbosa"];
-            for (let i = 0; i < 16; i++) {
-                let ovr = Math.floor(Math.random() * 6) + (activeClub.power - 2);
-                let age = Math.floor(Math.random() * 12) + 20;
-                let val = Math.floor((ovr * ovr * 1200) * (28 / age));
-                gameState.players.push({
-                    id: Date.now() + i,
-                    name: firstN[Math.floor(Math.random() * firstN.length)] + " " + lastN[Math.floor(Math.random() * lastN.length)],
-                    age: age,
-                    pos: Object.keys(positionOrder)[Math.floor(Math.random() * 5)],
-                    ovr: ovr,
-                    wage: ovr * 280,
-                    status: i < 11 ? "Titular" : "Reserva",
-                    stamina: 100,
-                    val: val,
-                    onSale: false
-                });
-            }
-        }
-
-        document.getElementById('user-club-name').innerText = activeClub.name;
+        document.getElementById('user-club-name').innerText = gameState.clubs.find(c => c.id === clubId).name;
         document.getElementById('screen-select').style.display = 'none';
         document.getElementById('main-interface').style.display = 'block';
         document.getElementById('top-bar').style.display = 'flex';
@@ -902,10 +979,12 @@
         card.draggable = true;
         card.dataset.id = p.id;
 
+        let starBadge = p.age <= 23 ? ` <i class="fa-solid fa-star" style="color:var(--warning); font-size:0.75rem;"></i>` : "";
+
         card.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span>
-                <div><strong>${p.name}</strong><div style="font-size: 0.75rem; color: var(--text-muted);">${p.age} anos | ${formatMoney(p.val)}</div></div>
+                <div><strong>${p.name}${starBadge}</strong><div style="font-size: 0.75rem; color: var(--text-muted);">${p.age} anos | ${formatMoney(p.val)}</div></div>
             </div>
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="text-align: right;"><div style="font-weight: bold; color: var(--primary);">OVR ${p.ovr}</div></div>
@@ -1047,7 +1126,6 @@
             if (!isMatchSimulating || isIntervalPaused) { clearInterval(matchIntervalToken); return; }
             
             gameState.currentMinute++;
-            
             document.getElementById('score-match-time').innerText = gameState.currentMinute + "'";
 
             gameState.players.forEach(p => { if (p.status === "Titular" && p.stamina > 10) p.stamina -= (Math.random() * 0.16); });
@@ -1170,7 +1248,6 @@
         });
     }
 
-    // FIX DA BARRA DE INFORMAÇÕES SUPERIOR SINCRO COM GAMESTATE
     function updateTopBar() {
         document.getElementById('user-money').innerText = formatMoney(gameState.money);
         document.getElementById('current-week').innerText = gameState.week;
@@ -1213,7 +1290,7 @@
         
         for(let i=0; i<5; i++) {
             let ovr = Math.floor(Math.random() * 12) + 72;
-            let age = Math.floor(Math.random() * 14) + 19;
+            let age = Math.floor(Math.random() * 12) + 18;
             let pos = positions[Math.floor(Math.random() * positions.length)];
             let name = fNames[Math.floor(Math.random() * fNames.length)] + " " + lNames[Math.floor(Math.random() * lNames.length)];
             gameState.market.push({ id: Date.now() + i, name: name, age: age, pos: pos, ovr: ovr, val: Math.floor((ovr * ovr * 1200) * (28 / age)), wage: ovr * 280 });
@@ -1222,7 +1299,7 @@
 
     function renderMarket() {
         let tbody = "";
-        gameState.market.forEach(p => { tbody += `<tr><td>${p.name}</td><td>${p.age}</td><td><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span></td><td><strong>${p.ovr}</strong></td><td>${formatMoney(p.val)}</td><td>${formatMoney(p.wage)}</td><td><button onclick="buyPlayer(${p.id})">Comprar</button></td></tr>`; });
+        gameState.market.forEach(p => { tbody += `<tr><td>${p.name} ${p.age <= 23 ? '<i class="fa-solid fa-star" style="color:var(--warning); font-size:0.7rem;"></i>':''}</td><td>${p.age} anos</td><td><span class="badge pos-${p.pos.toLowerCase()}">${p.pos}</span></td><td><strong>${p.ovr}</strong></td><td>${formatMoney(p.val)}</td><td>${formatMoney(p.wage)}</td><td><button onclick="buyPlayer(${p.id})">Comprar</button></td></tr>`; });
         document.getElementById('table-mercado').querySelector('tbody').innerHTML = tbody;
     }
 
@@ -1252,7 +1329,6 @@
         document.getElementById('loan-limit-value').innerText = formatMoney(gameState.loanLimit);
     }
 
-    // ATUALIZAÇÃO SINCRO DA BARRA SUPERIOR APÓS TRANSAÇÕES DO BANCO
     function takeLoan() { 
         if (gameState.loanLimit <= 0) return alert("Limite bancário estourado!"); 
         gameState.money += gameState.loanChunk; gameState.debt += gameState.loanChunk; gameState.loanLimit -= gameState.loanChunk; 
@@ -1328,10 +1404,41 @@
             gameState.clubs.sort((a,b) => b.pts - a.pts || b.sg - a.sg);
             if(gameState.clubs[0].id === gameState.userClub) {
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                alert("🏆 PARABÉNS! VOCÊ É O CAMPEÃO DA SÉRIE A!");
             }
+
+            let evoLog = "📆 [Fim de Temporada]: Jovens promessas evoluíram:\n";
+            gameState.players.forEach(p => {
+                if (p.age <= 23) {
+                    let gain = Math.floor(Math.random() * 3) + 1;
+                    p.ovr += gain;
+                    p.val = Math.floor(p.val * (1 + (gain * 0.15)));
+                    evoLog += `• ${p.name} progrediu +${gain} de OVR!\n`;
+                } else if (p.age >= 32) {
+                    p.ovr -= 1;
+                }
+                p.age += 1;
+            });
+            alert(evoLog);
+
+            gameState.week = 1;
+            gameState.clubs.forEach(c => { c.pts = 0; c.v = 0; c.e = 0; c.d = 0; c.sg = 0; });
+            
+            // Ao virar o ano, o técnico decide se cumpre o contrato ou avalia novas propostas
+            alert("Temporada encerrada! Você foi encaminhado ao painel de propostas para decidir seu futuro.");
+            resignFromClub();
+            return;
+        } else {
+            gameState.week++;
         }
 
-        gameState.week++; generateMarket(); simulateProposals(); 
+        generateMarket(); simulateProposals(); 
+        
+        gameState.savedClubsSquads[gameState.userClub] = {
+            players: gameState.players, money: gameState.money, debt: gameState.debt,
+            loanLimit: gameState.loanLimit, loanChunk: gameState.loanChunk,
+            financeHistory: gameState.financeHistory, weeksLabels: gameState.weeksLabels, finances: gameState.finances
+        };
         localStorage.setItem("grid_manager_save", JSON.stringify(gameState));
         updateTopBar(); prepareDashboard();
     }
